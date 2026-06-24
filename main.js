@@ -6,6 +6,7 @@ const { fetchStats, closeHidden } = require('./tracker');
 const { DiscordRPC } = require('./discord-rpc');
 const { loadHistory, saveHistory } = require('./lib/history-store');
 const { recordSample } = require('./lib/history');
+const { buildHudViewModel } = require('./lib/viewmodel');
 
 // Nom du process de Rocket League (sans .exe) tel que renvoyé par Get-Process.
 const RL_PROCESS = 'RocketLeague';
@@ -84,6 +85,7 @@ function mmrRef(pl) {
 let win;
 let session;
 let history; // état du store d'historique persistant (playlist sélectionnée)
+let sessionStart = 0; // début de la session de jeu en cours (pour le chrono HUD), indépendant de Discord
 let clickThrough = true;
 
 // --- Discord Rich Presence ---
@@ -285,11 +287,22 @@ async function poll() {
     const m = (stats && stats.meta && stats.meta[sel]) || {};
     const rankup = detectRankUp(sel, m); // montée de rang/division -> anim
 
+    // View-model HUD (métriques dérivées) — source unique, renderer = affichage.
+    const vm = buildHudViewModel({
+      mmr, startMmr: ref.start,
+      events: history ? history.events : [],
+      gameStreak: m.streak ?? null,
+      session: session.total,
+      sessionStart, now: Date.now()
+    });
+
     const payload = {
       mmr, playlist: shortPlaylist(sel),
       startMmr: ref.start, goals, saves,
       rankTier: m.tier || null, rankDiv: m.div || null, rankIcon: m.icon || null,
       gameStreak: m.streak ?? null, rankup,
+      promotion: vm.promotion, momentum: vm.momentum,
+      boost: vm.boost, hot: vm.hot, sessionMs: vm.timeMs,
       ...session.total
     };
     sendUpdate(payload);
@@ -444,11 +457,13 @@ function setOverlayVisible(v) {
   overlayVisible = v;
   if (v) {
     win.showInactive();          // montre SANS voler le focus au jeu
+    if (!sessionStart) sessionStart = Date.now(); // démarre le chrono de session
     sendUpdate({ appear: true }); // anim d'apparition côté renderer
     sendUpdate({ spotify: lastSpotify }); // recale la ligne musique à l'affichage
     startPolling();              // reprend le scraping (et refresh immédiat)
   } else {
     win.hide();
+    sessionStart = 0; // hors jeu : on arrête le chrono
     stopPolling();        // stoppe poll + ferme la fenêtre Chromium = ~0 perf
     clearPresence();      // hors jeu : on retire l'activité Discord
   }
