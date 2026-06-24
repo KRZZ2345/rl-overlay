@@ -1,0 +1,102 @@
+/* ============================================================
+   RL Overlay V2 — skin partagé (spec §5). Réutilisé par index.html
+   (form Premium f5) et hub.html (Plan 3). Scopé sous .f5 pour ne
+   pas perturber les formes f0-f4 ni les thèmes cyclables.
+   ============================================================ */
+.f5 {
+  --bg: #0a0b0e;   --card: #0e0f13;  --line: #191b22;
+  --txt: #f4f5f7;  --muted: #868d9c; --dim: #5c6270;
+  --aA: #5b8cff;   --aB: #b489ff;                /* froid : bleu -> violet */
+  --good: #3ad29f; --loss: #ff5d6c;
+  --hot: #ff9e4d;  --hot2: #ffd36b;              /* Octane : RÉSERVÉ "chaud" */
+
+  width: 240px; margin: 3px; color: var(--txt);
+}
+.f5 .card {
+  position: relative; padding: 13px 14px 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+}
+/* Halo froid discret en tête de carte. */
+.f5 .card::before {
+  content: ''; position: absolute; top: 0; left: 16px; right: 16px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--aA), var(--aB), transparent);
+  opacity: 0.7;
+}
+
+/* 1 — Rank Shield + tier + playlist */
+.f5 .top { display: flex; align-items: center; gap: 9px; }
+.f5 .shield { width: 30px; height: 30px; object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(91,140,255,0.45)); }
+.f5 .tier { font-size: 12px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--txt); }
+.f5 .pl5 { margin-left: auto; font-size: 10px; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--muted); }
+
+/* 2 — MMR géant + delta */
+.f5 .mmrrow { display: flex; align-items: baseline; gap: 10px; margin: 6px 0 2px; }
+.f5 .big { font-size: 46px; font-weight: 300; line-height: 1;
+  font-variant-numeric: tabular-nums; letter-spacing: -2px; color: var(--txt);
+  text-shadow: 0 0 18px rgba(91,140,255,0.25); }
+.f5 .dlt { font-size: 14px; font-weight: 600; font-style: italic;
+  font-variant-numeric: tabular-nums; }
+.f5 .dlt.up { color: var(--good); } .f5 .dlt.down { color: var(--loss); }
+.f5 .dlt.flat { color: var(--dim); }
+
+/* 3 — Barre promotion (froid bleu->violet, tête lumineuse) */
+.f5 .promo { margin: 9px 0 4px; }
+.f5 .ptrack { height: 6px; border-radius: 3px; background: #15171d; overflow: hidden; }
+.f5 .pfill { height: 100%; width: 0%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--aA), var(--aB));
+  box-shadow: 0 0 10px rgba(180,137,255,0.55);
+  transition: width 0.6s cubic-bezier(.2,.8,.2,1); }
+.f5 .plbl { margin-top: 4px; font-size: 9px; letter-spacing: 0.6px;
+  text-transform: uppercase; color: var(--muted); }
+
+/* 4 — Momentum-10 : 10 barres pleine largeur */
+.f5 .mom { display: flex; gap: 3px; margin: 8px 0 6px; }
+.f5 .mbar { flex: 1; height: 14px; border-radius: 2px; background: #1c1f27; }
+.f5 .mbar.win { background: var(--good); }
+.f5 .mbar.loss { background: var(--loss); }
+
+/* 5 — Barre Boost / élan (orange, visible surtout en "chaud") */
+.f5 .boost { margin: 6px 0 8px; }
+.f5 .btrack { height: 5px; border-radius: 3px; background: #15171d; overflow: hidden; }
+.f5 .bfill { height: 100%; width: 0%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--hot), var(--hot2));
+  opacity: 0.35; transition: width 0.5s ease, opacity 0.4s ease; }
+.f5 .blbl { margin-top: 3px; font-size: 8px; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--dim); }
+
+/* 6 — Pied : W/L + temps de session + pill streak */
+.f5 .foot5 { display: flex; align-items: center; gap: 10px; margin-top: 6px;
+  font-variant-numeric: tabular-nums; }
+.f5 .foot5 .w5 { color: var(--good); font-weight: 700; }
+.f5 .foot5 .l5 { color: var(--loss); font-weight: 700; }
+.f5 .foot5 .sep5 { color: var(--dim); }
+.f5 .foot5 .time { color: var(--muted); font-size: 11px; }
+.f5 .pill { margin-left: auto; font-size: 11px; font-weight: 700;
+  padding: 2px 9px; border-radius: 10px;
+  color: var(--dim); background: #15171d; }
+.f5 .pill.win { color: #1a1205; background: linear-gradient(90deg, var(--hot), var(--hot2)); }
+.f5 .pill.loss { color: #1a0606; background: rgba(255,93,108,0.18); }
+
+/* ---- ÉTAT CHAUD : embrasement Octane (jamais au repos) ---- */
+.f5.hot .card { border-color: rgba(255,158,77,0.35); }
+.f5.hot .card::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 40px;
+  border-radius: 0 0 14px 14px; pointer-events: none;
+  background: linear-gradient(transparent, rgba(255,158,77,0.16));
+  animation: ember 2.4s ease-in-out infinite;
+}
+.f5.hot .bfill { opacity: 1; animation: breathe 1.8s ease-in-out infinite; }
+.f5.hot .pill.win { animation: pulse 1.8s ease-in-out infinite; }
+.f5.hot .mbar.glow { box-shadow: 0 0 9px rgba(255,158,77,0.85);
+  background: linear-gradient(180deg, var(--hot2), var(--hot)); }
+.f5.hot .dlt.up { color: var(--hot2); }
+
+@keyframes ember   { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+@keyframes breathe { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
+@keyframes pulse   { 0%,100% { box-shadow: 0 0 0 rgba(255,158,77,0); } 50% { box-shadow: 0 0 12px rgba(255,158,77,0.8); } }
