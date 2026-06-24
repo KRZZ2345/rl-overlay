@@ -65,8 +65,8 @@
 .f5 .boost { margin: 6px 0 8px; }
 .f5 .btrack { height: 5px; border-radius: 3px; background: #15171d; overflow: hidden; }
 .f5 .bfill { height: 100%; width: 0%; border-radius: 3px;
-  background: linear-gradient(90deg, var(--hot), var(--hot2));
-  opacity: 0.35; transition: width 0.5s ease, opacity 0.4s ease; }
+  background: linear-gradient(90deg, var(--aA), var(--aB));
+  opacity: 0.45; transition: width 0.5s ease, opacity 0.4s ease, background 0.4s ease; }
 .f5 .blbl { margin-top: 3px; font-size: 8px; letter-spacing: 1px;
   text-transform: uppercase; color: var(--dim); }
 
@@ -80,7 +80,7 @@
 .f5 .pill { margin-left: auto; font-size: 11px; font-weight: 700;
   padding: 2px 9px; border-radius: 10px;
   color: var(--dim); background: #15171d; }
-.f5 .pill.win { color: #1a1205; background: linear-gradient(90deg, var(--hot), var(--hot2)); }
+.f5 .pill.win { color: #04130b; background: linear-gradient(90deg, var(--good), #2fbf8c); }
 .f5 .pill.loss { color: #1a0606; background: rgba(255,93,108,0.18); }
 
 /* ---- ÉTAT CHAUD : embrasement Octane (jamais au repos) ---- */
@@ -91,8 +91,8 @@
   background: linear-gradient(transparent, rgba(255,158,77,0.16));
   animation: ember 2.4s ease-in-out infinite;
 }
-.f5.hot .bfill { opacity: 1; animation: breathe 1.8s ease-in-out infinite; }
-.f5.hot .pill.win { animation: pulse 1.8s ease-in-out infinite; }
+.f5.hot .bfill { background: linear-gradient(90deg, var(--hot), var(--hot2)); opacity: 1; animation: breathe 1.8s ease-in-out infinite; }
+.f5.hot .pill.win { color: #1a1205; background: linear-gradient(90deg, var(--hot), var(--hot2)); animation: pulse 1.8s ease-in-out infinite; }
 .f5.hot .mbar.glow { box-shadow: 0 0 9px rgba(255,158,77,0.85);
   background: linear-gradient(180deg, var(--hot2), var(--hot)); }
 .f5.hot .dlt.up { color: var(--hot2); }
