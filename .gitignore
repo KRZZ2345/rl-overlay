@@ -6,6 +6,7 @@ dist-pack/
 # Ils sont generes dans userData a l'execution (pseudo, MMR de session, logs).
 config.json
 session.json
+history.json
 overlay.log
 
 .superpowers/
