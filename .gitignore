@@ -7,3 +7,5 @@ dist-pack/
 config.json
 session.json
 overlay.log
+
+.superpowers/
