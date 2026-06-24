@@ -267,10 +267,15 @@ async function poll() {
     if (mmr == null) return;
 
     // Enregistre le MMR de la playlist suivie dans l'historique persistant.
-    if (!history || history.playlist !== sel) history = loadHistory(HISTORY_PATH, sel);
-    const recorded = recordSample(history, mmr, Date.now(), today());
-    history = recorded.state;
-    saveHistory(HISTORY_PATH, history);
+    // Un échec disque ne doit jamais faire échouer le poll.
+    try {
+      if (!history || history.playlist !== sel) history = loadHistory(HISTORY_PATH, sel);
+      const recorded = recordSample(history, mmr, Date.now(), today());
+      history = recorded.state;
+      saveHistory(HISTORY_PATH, history);
+    } catch (e) {
+      logFocus && logFocus('history write ERREUR: ' + e.message);
+    }
 
     const goals = dayDelta('goals', stats.goals);
     const saves = dayDelta('saves', stats.saves);
