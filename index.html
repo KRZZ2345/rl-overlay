@@ -293,7 +293,9 @@
   const state = {
     mmr: null, playlist: '2v2', rankTier: null, rankDiv: null, rankIcon: null,
     startMmr: null, wins: 0, losses: 0, streak: 0, gameStreak: null,
-    goals: null, saves: null, spotify: null
+    goals: null, saves: null, spotify: null,
+    // Form Premium (f5) — view-model dérivé (Plan 2).
+    promoPct: 0, promoMatches: 0, momResults: [], boost: 0, sessionMs: 0, hot: false
   };
   let prevW = null, prevL = null, prevPlaylist = null;
   const BAND = 100;
@@ -368,10 +370,31 @@
         <div class="chip rgt"><span class="delta flat" data-f="delta">—</span></div>
         <div class="np" data-f="np"></div>
       </div>`
+    ,
+    // F5 — Premium : Rank Shield + MMR géant + promo + Momentum-10 + élan + pied
+    () => `<div class="form f5">
+        <div class="card">
+          <div class="top">
+            <img class="shield" data-f="shield5" style="display:none" alt="">
+            <span class="tier" data-f="rank">—</span>
+            <span class="pl5" data-f="pl">2v2</span>
+          </div>
+          <div class="mmrrow"><span class="big" data-f="mmr">—</span><span class="dlt flat" data-f="delta">—</span></div>
+          <div class="promo"><div class="ptrack"><div class="pfill" data-f="promoFill"></div></div><div class="plbl" data-f="promoLbl">—</div></div>
+          <div class="mom" data-f="momentum"></div>
+          <div class="boost"><div class="btrack"><div class="bfill" data-f="boostFill"></div></div><div class="blbl">⚡ élan</div></div>
+          <div class="foot5">
+            <span><b class="w5" data-f="wins">0</b> <span class="sep5">·</span> <b class="l5" data-f="losses">0</b></span>
+            <span class="time" data-f="sessTime">0:00</span>
+            <span class="pill" data-f="streakPill">—</span>
+          </div>
+          <div class="np" data-f="np"></div>
+        </div>
+      </div>`
   ];
 
   const THEME_NAMES  = ['Bleu', 'Rocket', 'Néon', 'Émeraude', 'Crimson', 'Cyber', 'Or', 'Mono'];
-  const LAYOUT_NAMES = ['Minimal', 'Compact', 'Compétitif', 'Dashboard', 'Boost'];
+  const LAYOUT_NAMES = ['Minimal', 'Compact', 'Compétitif', 'Dashboard', 'Boost', 'Premium'];
   let curTheme = 0, curLayout = 0;
 
   function applyThemeClass() {
@@ -472,9 +495,50 @@
       else if (st < 0) { e.textContent = (-st) + 'L'; e.classList.add('streak-loss'); }
       else { e.textContent = '—'; e.classList.add('streak-zero'); }
     });
+    q('streakPill').forEach((e) => {
+      e.classList.remove('win', 'loss');
+      if (st > 0) { e.textContent = '🔥 ' + st; e.classList.add('win'); }
+      else if (st < 0) { e.textContent = (-st) + 'L'; e.classList.add('loss'); }
+      else { e.textContent = '—'; }
+    });
     // Anneau F4 : glow réagit à la streak.
     const ring = stage.querySelector('.f4');
     if (ring) { ring.classList.remove('rs-win', 'rs-loss'); if (st > 0) ring.classList.add('rs-win'); else if (st < 0) ring.classList.add('rs-loss'); }
+
+    // ---- Form Premium (f5) ----
+    // Rank Shield (même source d'icône que f3).
+    q('shield5').forEach((ic) => {
+      if (s.rankIcon) {
+        ic.onerror = () => { ic.onerror = null; ic.src = s.rankIcon; };
+        ic.src = iconLocal(s.rankIcon); ic.style.display = '';
+      } else { ic.style.display = 'none'; }
+    });
+    // Barre promotion.
+    q('promoFill').forEach((e) => { e.style.width = (s.promoPct || 0) + '%'; });
+    setText('promoLbl', s.promoMatches > 0 ? '▲ ' + s.promoMatches + ' victoire' + (s.promoMatches > 1 ? 's' : '') + ' vers promo' : 'Promotion');
+    // Barre élan.
+    q('boostFill').forEach((e) => { e.style.width = (s.boost || 0) + '%'; });
+    // Momentum-10 : 10 barres, dernières victoires consécutives "glow" si chaud.
+    q('momentum').forEach((el) => {
+      const res = s.momResults || [];
+      let trailing = 0;
+      for (let i = res.length - 1; i >= 0 && res[i] === true; i--) trailing++;
+      el.innerHTML = '';
+      for (let i = 0; i < 10; i++) {
+        const r = res[i];
+        const b = document.createElement('span');
+        b.className = 'mbar' + (r === true ? ' win' : r === false ? ' loss' : '');
+        if (s.hot && r === true && i >= res.length - trailing) b.classList.add('glow');
+        el.appendChild(b);
+      }
+    });
+    // Temps de session mm:ss.
+    const secs = Math.floor((s.sessionMs || 0) / 1000);
+    setText('sessTime', Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0'));
+    // Pill streak (réutilise la valeur de streak calculée plus bas via st).
+    // Embrasement de la carte si état chaud.
+    const f5 = stage.querySelector('.f5');
+    if (f5) f5.classList.toggle('hot', !!s.hot);
 
     syncFx(); // recale la boîte FX si la taille de la forme a changé
   }
@@ -633,6 +697,12 @@
       if (prevL != null && state.losses > prevL) { flash('loss'); pop('losses'); celebrate('loss'); maybeLossSound(); }
       prevW = state.wins; prevL = state.losses;
     }
+
+    if (d.promotion) { state.promoPct = d.promotion.pct ?? 0; state.promoMatches = d.promotion.matchesNeeded ?? 0; }
+    if (d.momentum) { state.momResults = d.momentum.results || []; }
+    if (d.boost !== undefined) state.boost = d.boost;
+    if (d.sessionMs !== undefined) state.sessionMs = d.sessionMs;
+    if (d.hot !== undefined) state.hot = d.hot;
 
     paint();
   });
