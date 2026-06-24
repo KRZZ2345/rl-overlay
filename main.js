@@ -4,6 +4,8 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 const { fetchStats, closeHidden } = require('./tracker');
 const { DiscordRPC } = require('./discord-rpc');
+const { loadHistory, saveHistory } = require('./lib/history-store');
+const { recordSample } = require('./lib/history');
 
 // Nom du process de Rocket League (sans .exe) tel que renvoyé par Get-Process.
 const RL_PROCESS = 'RocketLeague';
@@ -12,6 +14,7 @@ const RL_PROCESS = 'RocketLeague';
 // l'app est packagée en .exe). __dirname serait en lecture seule (asar).
 const CONFIG_PATH = path.join(app.getPath('userData'), 'config.json');
 const SESSION_PATH = path.join(app.getPath('userData'), 'session.json');
+const HISTORY_PATH = path.join(app.getPath('userData'), 'history.json');
 
 const DEFAULT_CONFIG = {
   platform: 'epic',
@@ -80,6 +83,7 @@ function mmrRef(pl) {
 
 let win;
 let session;
+let history; // état du store d'historique persistant (playlist sélectionnée)
 let clickThrough = true;
 
 // --- Discord Rich Presence ---
@@ -261,6 +265,12 @@ async function poll() {
     const ref = mmrRef(sel);
     const mmr = ratings[sel] != null ? ratings[sel] : ref.last;
     if (mmr == null) return;
+
+    // Enregistre le MMR de la playlist suivie dans l'historique persistant.
+    if (!history || history.playlist !== sel) history = loadHistory(HISTORY_PATH, sel);
+    const recorded = recordSample(history, mmr, Date.now(), today());
+    history = recorded.state;
+    saveHistory(HISTORY_PATH, history);
 
     const goals = dayDelta('goals', stats.goals);
     const saves = dayDelta('saves', stats.saves);
