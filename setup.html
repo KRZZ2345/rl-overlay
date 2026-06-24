@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: radial-gradient(120% 120% at 50% 0%, #14203c 0%, #0a0f1e 70%);
+    color: #e9eefc; padding: 22px; height: 100vh;
+  }
+  .logo { display: flex; align-items: center; gap: 9px; margin-bottom: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #ff7e1e; box-shadow: 0 0 10px #ff7e1e; }
+  h1 { font-size: 17px; letter-spacing: 0.5px; }
+  p.sub { font-size: 12px; color: #8794b8; margin-bottom: 20px; }
+  label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #8794b8; margin: 16px 0 6px; }
+  select, input {
+    width: 100%; padding: 11px 12px; font-size: 14px;
+    background: rgba(255,255,255,0.06); color: #e9eefc;
+    border: 1px solid rgba(120,160,255,0.25); border-radius: 8px; outline: none;
+  }
+  input:focus, select:focus { border-color: #6cc6ff; }
+  select option { background: #14203c; }
+  .hint { font-size: 10px; color: #6b7596; margin-top: 6px; }
+  button {
+    width: 100%; margin-top: 26px; padding: 13px; font-size: 15px; font-weight: 700;
+    color: #04130b; cursor: pointer; border: none; border-radius: 9px;
+    background: linear-gradient(90deg, #4cf08a, #2fd673);
+    box-shadow: 0 0 16px rgba(76,240,138,0.35);
+    transition: transform 0.1s ease;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { background: #2a3550; color: #6b7596; box-shadow: none; cursor: default; transform: none; }
+  .err { color: #ff6b6b; font-size: 12px; margin-top: 12px; min-height: 16px; }
+</style>
+</head>
+<body>
+  <div class="logo"><span class="dot"></span><h1>RL Overlay</h1></div>
+  <p class="sub">Configure ton profil pour afficher tes stats Rocket League.</p>
+
+  <label for="platform">Plateforme</label>
+  <select id="platform">
+    <option value="epic">Epic Games</option>
+    <option value="steam">Steam</option>
+    <option value="psn">PlayStation</option>
+    <option value="xbl">Xbox</option>
+    <option value="switch">Nintendo Switch</option>
+  </select>
+
+  <label for="username">Pseudo / ID</label>
+  <input id="username" type="text" placeholder="Ton pseudo exact (ex: TonPseudo)" autofocus />
+  <div class="hint">Le même que sur ton profil Tracker. Ton profil doit être public.</div>
+
+  <button id="go" disabled>Démarrer l'overlay</button>
+  <div class="err" id="err"></div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const input = $('username'), go = $('go');
+
+  input.addEventListener('input', () => { go.disabled = input.value.trim().length === 0; });
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !go.disabled) go.click(); });
+
+  go.addEventListener('click', async () => {
+    go.disabled = true; $('err').textContent = '';
+    try {
+      await window.setup.save({ platform: $('platform').value, username: input.value.trim() });
+    } catch (e) {
+      $('err').textContent = 'Erreur : ' + e.message;
+      go.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+node_modules/
+dist/
+dist-pack/
+
+# Fichiers personnels / runtime — JAMAIS commités ni packagés.
+# Ils sont generes dans userData a l'execution (pseudo, MMR de session, logs).
+config.json
+session.json
+overlay.log

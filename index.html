@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* ---- Thèmes : chaque thème ne règle que ces variables. Le reste en dérive
+     via color-mix (bordures, glows, barres). ---- */
+  :root {
+    --bg1: rgba(12,17,32,0.62); --bg2: rgba(8,11,22,0.66);
+    --accent: #6cc6ff; --accent2: #2f7bff; --title: #dfe7ff;
+  }
+  body.t1 { --bg1: rgba(26,16,8,0.62); --bg2: rgba(18,11,6,0.66); --accent: #ff9d3c; --accent2: #ff6a00; --title: #ffe6cf; }
+  body.t2 { --bg1: rgba(22,12,32,0.62); --bg2: rgba(14,8,22,0.66); --accent: #c08bff; --accent2: #7a3cff; --title: #ecdcff; }
+  body.t3 { --bg1: rgba(8,24,18,0.62); --bg2: rgba(5,16,12,0.66); --accent: #4cf08a; --accent2: #18b86a; --title: #d4ffe7; }
+  body.t4 { --bg1: rgba(28,10,12,0.62); --bg2: rgba(18,6,8,0.66); --accent: #ff6b6b; --accent2: #d22; --title: #ffd9d9; }
+  body.t5 { --bg1: rgba(6,20,24,0.62); --bg2: rgba(4,12,16,0.66); --accent: #00e6d8; --accent2: #ff2bd6; --title: #d3fbff; }
+  body.t6 { --bg1: rgba(26,22,6,0.62); --bg2: rgba(16,13,4,0.66); --accent: #ffd95e; --accent2: #ffae00; --title: #fff4cf; }
+  body.t7 { --bg1: rgba(14,16,22,0.66); --bg2: rgba(9,10,14,0.68); --accent: #c9d2e8; --accent2: #8390b5; --title: #eef2fb; }
+
+  html, body {
+    background: transparent;
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    -webkit-user-select: none;
+    overflow: hidden;
+  }
+
+  #stage { position: relative; }
+
+  /* ============================================================
+     STYLE COMMUN — Esports HUD : coins biseautés, accents néon.
+     ============================================================ */
+  .form { position: relative; margin: 3px; color: var(--title); }
+
+  /* Carte angulaire partagée par F0..F3 (biseau bas-droite + haut-gauche). */
+  .card {
+    position: relative;
+    background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
+    border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+    box-shadow: 0 6px 22px rgba(0,0,0,0.52),
+                inset 0 0 0 1px color-mix(in srgb, var(--accent) 9%, transparent);
+    backdrop-filter: blur(4px);
+    clip-path: polygon(13px 0, 100% 0, 100% calc(100% - 13px), calc(100% - 13px) 100%, 0 100%, 0 13px);
+  }
+  /* Liseré néon en haut de carte. */
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 13px; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent2) 70%, transparent), transparent);
+    opacity: 0.9;
+  }
+
+  /* --- briques de contenu réutilisées --- */
+  .pl   { font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: var(--title); }
+  .arr  { color: color-mix(in srgb, var(--accent) 75%, #fff 0%); font-weight: 800; }
+  .rank { font-size: 9px; font-weight: 600; color: #9fb0d8; letter-spacing: 0.2px; }
+  .mmr  { font-weight: 800; color: var(--accent); line-height: 1;
+          text-shadow: 0 0 13px color-mix(in srgb, var(--accent) 55%, transparent); }
+  .delta { font-weight: 800; font-variant-numeric: tabular-nums; }
+  .delta.up { color: #4cf08a; } .delta.down { color: #ff6b6b; } .delta.flat { color: #9fb0d8; }
+  .w { color: #4cf08a; font-weight: 800; } .l { color: #ff6b6b; font-weight: 800; }
+  .wr { color: #ffce54; font-weight: 800; }
+  .lbl { font-size: 8px; letter-spacing: 0.8px; text-transform: uppercase; color: #6f7a9c; }
+  .streak {
+    font-weight: 800; font-size: 11px; padding: 2px 9px; border-radius: 11px;
+    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  }
+  .streak-win  { color: #04130b; background: linear-gradient(90deg,#4cf08a,#2fd673); box-shadow: 0 0 9px rgba(76,240,138,0.45); }
+  .streak-loss { color: #1a0606; background: linear-gradient(90deg,#ff6b6b,#ff4d4d); box-shadow: 0 0 9px rgba(255,107,107,0.45); }
+  .streak-zero { color: #c9d2e8; background: rgba(120,140,180,0.16); }
+  .bar { height: 6px; border-radius: 4px; background: rgba(255,255,255,0.08); overflow: hidden; }
+  .bar-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 4px; box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 55%, transparent);
+    transition: width 0.6s cubic-bezier(.2,.8,.2,1);
+  }
+  .bar-next { font-size: 9px; color: #8390b5; letter-spacing: 0.4px; }
+  .rank-ico { width: 30px; height: 30px; object-fit: contain; filter: drop-shadow(0 0 4px rgba(0,0,0,0.6)); }
+
+  /* ---- F0 — Minimal : MMR géant + delta + streak ---- */
+  .f0 { width: 126px; }
+  .f0 .card { padding: 11px 12px 12px; text-align: center; }
+  .f0 .mmr { font-size: 38px; }
+  .f0 .sub { display: flex; align-items: center; justify-content: center; gap: 9px; margin-top: 6px; }
+  .f0 .delta { font-size: 13px; }
+
+  /* ---- F1 — Compact : rang + MMR + W/L + streak ---- */
+  .f1 { width: 198px; }
+  .f1 .card { padding: 9px 12px 10px; }
+  .f1 .head { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+  .f1 .pl { font-size: 12px; }
+  .f1 .head .rank { margin-left: auto; }
+  .f1 .mid { display: flex; align-items: baseline; gap: 10px; }
+  .f1 .mid .mmr { font-size: 30px; }
+  .f1 .mid .delta { font-size: 13px; }
+  .f1 .foot { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+  .f1 .foot .wl { font-size: 15px; }
+
+  /* ---- F2 — Compétitif : + barre + WR ---- */
+  .f2 { width: 230px; }
+  .f2 .card { padding: 9px 13px 11px; }
+  .f2 .head { display: flex; align-items: center; gap: 7px; }
+  .f2 .head .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
+  .f2 .head .pl { font-size: 12px; }
+  .f2 .head .rank { margin-left: auto; }
+  .f2 .mmrrow { display: flex; align-items: baseline; gap: 11px; margin: 4px 0 8px; }
+  .f2 .mmrrow .mmr { font-size: 33px; }
+  .f2 .mmrrow .delta { font-size: 14px; }
+  .f2 .barrow { display: flex; align-items: center; gap: 8px; }
+  .f2 .barrow .bar { flex: 1; }
+  .f2 .foot { display: flex; align-items: center; justify-content: space-between; margin-top: 9px; }
+  .f2 .foot .stat { text-align: center; }
+  .f2 .foot .stat .v { font-size: 16px; font-weight: 800; }
+
+  /* ---- F3 — Dashboard : tout + icône rang + buts/saves ---- */
+  .f3 { width: 246px; }
+  .f3 .card { padding: 9px 13px 11px; }
+  .f3 .head { display: flex; align-items: center; gap: 9px; }
+  .f3 .head .col { display: flex; flex-direction: column; gap: 1px; }
+  .f3 .head .pl { font-size: 12px; }
+  .f3 .head .mmr { font-size: 30px; margin-left: auto; }
+  .f3 .barrow { display: flex; align-items: center; gap: 8px; margin: 8px 0 2px; }
+  .f3 .barrow .bar { flex: 1; }
+  .f3 .foot { display: flex; align-items: center; justify-content: space-between; margin-top: 9px; }
+  .f3 .foot .stat { text-align: center; }
+  .f3 .foot .stat .v { font-size: 16px; font-weight: 800; }
+  .f3 .day {
+    display: flex; align-items: center; justify-content: space-around;
+    margin-top: 9px; padding: 6px 4px;
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  }
+  .f3 .day .item { display: flex; align-items: center; gap: 6px; }
+  .f3 .day .ico { font-size: 13px; }
+  .f3 .day .dv { font-size: 15px; font-weight: 800; }
+  .v-goal { color: #ffa94d; } .v-save { color: #63d8ff; }
+  .f3 .day .sep { width: 1px; height: 20px; background: color-mix(in srgb, var(--accent) 22%, transparent); }
+
+  /* ---- F4 — Boost : anneau circulaire autour de la jauge de boost ---- */
+  .f4 { width: 260px; height: 260px; margin: 0; }
+  .f4 .ring {
+    position: absolute; inset: 22px; border-radius: 50%;
+    border: 2px solid color-mix(in srgb, var(--accent) 48%, transparent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 28%, transparent),
+                inset 0 0 22px color-mix(in srgb, var(--accent) 16%, transparent);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .f4.rs-win .ring  { border-color: rgba(76,240,138,0.65); box-shadow: 0 0 22px rgba(76,240,138,0.5), inset 0 0 22px rgba(76,240,138,0.22); }
+  .f4.rs-loss .ring { border-color: rgba(255,90,90,0.65); box-shadow: 0 0 22px rgba(255,90,90,0.5), inset 0 0 22px rgba(255,90,90,0.22); }
+  .f4 .chip {
+    position: absolute; text-align: center;
+    background: linear-gradient(160deg, var(--bg1), var(--bg2));
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+    backdrop-filter: blur(3px);
+    padding: 4px 11px;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  }
+  .f4 .top { top: 2px;    left: 50%; transform: translateX(-50%); }
+  .f4 .bot { bottom: 2px; left: 50%; transform: translateX(-50%); }
+  .f4 .lft { left: 0;     top: 50%;  transform: translateY(-50%); }
+  .f4 .rgt { right: 0;    top: 50%;  transform: translateY(-50%); }
+  .f4 .top .mmr { font-size: 24px; }
+  .f4 .top .rank { display: block; margin-top: 1px; }
+  .f4 .bot .wl { font-size: 15px; }
+  .f4 .lft .delta, .f4 .rgt .delta { font-size: 13px; }
+
+  /* ============================================================
+     ANIMATIONS — couche FX au-dessus des formes (#fx)
+     ============================================================ */
+  /* Boîte FX calée sur la forme active (position + taille mesurées en JS).
+     --fxs = échelle dérivée de la largeur de la forme -> anims dimensionnées
+     selon l'affichage. --fall = hauteur réelle pour la chute des confettis. */
+  /* overflow visible : le texte d'anim (nowrap) peut dépasser une petite forme
+     sans être rogné -> il reste centré sur la forme au lieu d'être coupé. */
+  #fxbox { position: absolute; pointer-events: none; overflow: visible; z-index: 40; --fxs: 1; --fall: 230px; }
+
+  /* Flash vert/rouge sur W/L, limité à la forme active. */
+  #flash { position: absolute; inset: 0; opacity: 0; }
+  #flash.win  { background: radial-gradient(circle at 50% 50%, rgba(76,240,138,0.5), rgba(76,240,138,0) 72%); animation: flashFx 1s ease; }
+  #flash.loss { background: radial-gradient(circle at 50% 50%, rgba(255,80,80,0.5),  rgba(255,80,80,0) 72%);  animation: flashFx 1s ease; }
+  @keyframes flashFx { 0%{opacity:0;} 22%{opacity:1;} 100%{opacity:0;} }
+
+  @keyframes pop { 0%{transform:scale(1);} 40%{transform:scale(1.35);} 100%{transform:scale(1);} }
+  .pop { animation: pop 0.5s ease; }
+
+  /* Apparition de la forme (retour sur le jeu) + swap de playlist. */
+  @keyframes panelIn { 0%{opacity:0;transform:translateY(14px) scale(0.94);} 60%{opacity:1;} 100%{opacity:1;transform:translateY(0) scale(1);} }
+  .form.appear { animation: panelIn 0.4s cubic-bezier(.2,.85,.25,1); }
+  @keyframes swapIn { 0%{opacity:0;transform:translateX(16px);} 100%{opacity:1;transform:translateX(0);} }
+  .form.swap { animation: swapIn 0.3s cubic-bezier(.2,.8,.2,1); }
+
+  /* Célébration WIN / LOSS. */
+  #cel { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; overflow: hidden; }
+  #cel.show { display: flex; }
+  #cel.show::before {
+    content: ''; position: absolute; inset: 0;
+    backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
+    background: rgba(8,11,22,0.42); animation: celScrim 2.1s ease forwards;
+  }
+  @keyframes celScrim { 0%{opacity:0;} 12%{opacity:1;} 78%{opacity:1;} 100%{opacity:0;} }
+  .cel-glow { position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 45%, rgba(255,200,80,0.30), rgba(255,160,40,0.0) 65%);
+    animation: celGlow 1.9s ease forwards; }
+  @keyframes celGlow { 0%{opacity:0;} 18%{opacity:1;} 100%{opacity:0;} }
+  #cel.loss .cel-glow { background: radial-gradient(circle at 50% 45%, rgba(255,80,80,0.30), rgba(180,40,40,0.0) 65%); }
+  #cel.loss .cel-text {
+    background: linear-gradient(90deg,#ff8e8e,#ff4d4d 45%,#ff7b7b 70%,#d23a3a);
+    -webkit-background-clip: text; background-clip: text;
+    filter: drop-shadow(0 0 14px rgba(255,80,80,0.6));
+  }
+  .cel-text {
+    font-size: calc(30px * var(--fxs)); font-weight: 900; letter-spacing: 0.5px; white-space: nowrap;
+    background: linear-gradient(90deg,#ffe27a,#ff9d2f 45%,#ffd95e 70%,#ffb347);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 14px rgba(255,190,70,0.6));
+    animation: celPop 1.9s cubic-bezier(.2,.9,.3,1) forwards;
+  }
+  @keyframes celPop {
+    0%{transform:scale(0.2) rotate(-14deg);opacity:0;}
+    14%{transform:scale(1.3) rotate(5deg);opacity:1;}
+    28%{transform:scale(1.0) rotate(0deg);}
+    72%{transform:scale(1.06);opacity:1;}
+    100%{transform:scale(1.0);opacity:0;}
+  }
+  /* Rank up. */
+  .rankup { display: flex; flex-direction: column; align-items: center; gap: 1px; animation: rankPop 2.4s cubic-bezier(.2,.9,.3,1) forwards; }
+  .ru-top { font-size: calc(19px * var(--fxs)); font-weight: 900; letter-spacing: 0.6px; white-space: nowrap; }
+  .ru-logowrap { position: relative; width: calc(84px * var(--fxs)); height: calc(84px * var(--fxs)); display: flex; align-items: center; justify-content: center; margin: 1px 0; }
+  .ru-logo { width: calc(74px * var(--fxs)); height: calc(74px * var(--fxs)); object-fit: contain; animation: logoIn 2.4s cubic-bezier(.2,.85,.3,1) forwards; }
+  .ru-ring { position: absolute; inset: 4px; border-radius: 50%; border: 2px solid; opacity: 0; animation: ringPulse 2.4s ease forwards; }
+  .ru-sub { font-size: calc(11px * var(--fxs)); font-weight: 800; letter-spacing: 1px; color: #fff; text-transform: uppercase; opacity: 0.92; text-shadow: 0 1px 4px rgba(0,0,0,0.6); white-space: nowrap; }
+  @keyframes rankPop { 0%{opacity:0;transform:translateY(24px);} 14%{opacity:1;transform:translateY(0);} 82%{opacity:1;} 100%{opacity:0;transform:translateY(-10px);} }
+  @keyframes logoIn { 0%{transform:scale(0.3) rotate(-22deg);opacity:0;} 16%{transform:scale(1.22) rotate(7deg);opacity:1;} 30%{transform:scale(1.0) rotate(0deg);} 50%{transform:scale(1.06);} 64%{transform:scale(1.0);} 100%{transform:scale(1.0);} }
+  @keyframes ringPulse { 0%{transform:scale(0.5);opacity:0;} 18%{transform:scale(1.0);opacity:0.9;} 55%{transform:scale(1.5);opacity:0;} 100%{transform:scale(1.5);opacity:0;} }
+
+  .confetti { position: absolute; top: -16px; width: calc(7px * var(--fxs)); height: calc(11px * var(--fxs)); border-radius: 1px; opacity: 0; }
+  @keyframes fall { 0%{transform:translateY(-16px) rotate(0deg);opacity:0;} 12%{opacity:1;} 100%{transform:translateY(var(--fall)) rotate(560deg);opacity:0;} }
+
+  /* Toast nom du thème / forme. */
+  #toast {
+    position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
+    font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
+    color: var(--title); padding: 3px 10px; border-radius: 10px; white-space: nowrap;
+    background: color-mix(in srgb, var(--accent) 24%, rgba(8,11,22,0.7));
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    opacity: 0; z-index: 50;
+  }
+  #toast.show { animation: toastIn 1.3s ease forwards; }
+  @keyframes toastIn { 0%{opacity:0;transform:translateX(-50%) translateY(6px);} 15%{opacity:1;transform:translateX(-50%) translateY(0);} 80%{opacity:1;} 100%{opacity:0;} }
+
+  #err {
+    position: absolute; left: 6px; bottom: 6px;
+    color: #ffb347; font-size: 9px; display: none; z-index: 50;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  }
+  /* Ligne "musique en cours" (titre Spotify). Affichée seulement en jeu, en bas
+     de l'overlay. Tronquée à l'ellipse si trop longue. */
+  /* Ligne "musique en cours" (titre Spotify), intégrée dans chaque forme.
+     Affichée seulement quand une musique joue (sinon display:none via paint). */
+  .np {
+    display: none; margin: 5px 2px 0;
+    color: var(--accent); font-size: 12px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.95), 0 0 6px rgba(0,0,0,0.7);
+  }
+  /* Variante pour la forme Boost (anneau) : chip flottante en bas. */
+  .f4 .np {
+    position: absolute; left: 0; right: 0; bottom: -2px; margin: 0;
+    text-align: center; padding: 2px 8px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.5));
+  }
+</style>
+</head>
+<body>
+  <div id="stage"></div>
+
+  <div id="fxbox">
+    <div id="flash"></div>
+    <div id="cel"></div>
+  </div>
+  <div id="toast"></div>
+  <div id="err"></div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  // ---- État courant (dernières valeurs reçues). Repeint à chaque update et à
+  //      chaque changement de forme. ----
+  const state = {
+    mmr: null, playlist: '2v2', rankTier: null, rankDiv: null, rankIcon: null,
+    startMmr: null, wins: 0, losses: 0, streak: 0, gameStreak: null,
+    goals: null, saves: null, spotify: null
+  };
+  let prevW = null, prevL = null, prevPlaylist = null;
+  const BAND = 100;
+
+  function iconLocal(url) { return url ? 'ranks/' + url.split('/').pop() : ''; }
+  function hexA(hex, a) {
+    const n = parseInt(hex.slice(1), 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+  }
+  function imgTag(cls, url, style) {
+    const local = iconLocal(url);
+    const ferr = url ? `this.onerror=null;this.src='${url}'` : '';
+    return `<img class="${cls}" src="${local}" style="${style || ''}" onerror="${ferr}">`;
+  }
+  function replay(el, cls) { if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+
+  // ============================================================
+  // TEMPLATES DES 5 FORMES — chacune sa structure HTML propre.
+  // data-f="<champ>" = points d'injection remplis par paint().
+  // ============================================================
+  const FORMS = [
+    // F0 — Minimal
+    () => `<div class="form f0"><div class="card">
+        <div class="mmr" data-f="mmr">—</div>
+        <div class="sub"><span class="delta flat" data-f="delta">—</span><span class="streak streak-zero" data-f="streak">—</span></div>
+        <div class="np" data-f="np"></div>
+      </div></div>`,
+    // F1 — Compact
+    () => `<div class="form f1"><div class="card">
+        <div class="head"><span class="pl" data-f="pl">2v2</span><span class="arr">▸</span><span class="rank" data-f="rank">—</span></div>
+        <div class="mid"><span class="mmr" data-f="mmr">—</span><span class="delta flat" data-f="delta">—</span></div>
+        <div class="foot"><span class="wl"><b class="w" data-f="wins">0</b><span class="lbl">W</span> <b class="l" data-f="losses">0</b><span class="lbl">L</span></span><span class="streak streak-zero" data-f="streak">—</span></div>
+        <div class="np" data-f="np"></div>
+      </div></div>`,
+    // F2 — Compétitif
+    () => `<div class="form f2"><div class="card">
+        <div class="head"><span class="dot"></span><span class="pl" data-f="pl">2v2</span><span class="rank" data-f="rank">—</span></div>
+        <div class="mmrrow"><span class="mmr" data-f="mmr">—</span><span class="delta flat" data-f="delta">—</span></div>
+        <div class="barrow"><div class="bar"><div class="bar-fill" data-f="barFill"></div></div><span class="bar-next" data-f="barNext">→ —</span></div>
+        <div class="foot">
+          <div class="stat"><div class="lbl">W</div><div class="v w" data-f="wins">0</div></div>
+          <div class="stat"><div class="lbl">L</div><div class="v l" data-f="losses">0</div></div>
+          <div class="stat"><div class="lbl">WR</div><div class="v wr" data-f="wr">—</div></div>
+          <span class="streak streak-zero" data-f="streak">—</span>
+        </div>
+        <div class="np" data-f="np"></div>
+      </div></div>`,
+    // F3 — Dashboard
+    () => `<div class="form f3"><div class="card">
+        <div class="head"><img class="rank-ico" data-f="rankIco" style="display:none" alt=""><div class="col"><span class="pl" data-f="pl">2v2</span><span class="rank" data-f="rank">—</span></div><span class="mmr" data-f="mmr">—</span></div>
+        <div class="barrow"><div class="bar"><div class="bar-fill" data-f="barFill"></div></div><span class="bar-next" data-f="barNext">→ —</span></div>
+        <div class="foot">
+          <div class="stat"><div class="lbl">W</div><div class="v w" data-f="wins">0</div></div>
+          <div class="stat"><div class="lbl">L</div><div class="v l" data-f="losses">0</div></div>
+          <div class="stat"><div class="lbl">WR</div><div class="v wr" data-f="wr">—</div></div>
+          <div class="stat"><div class="lbl">MMR</div><div class="v delta flat" data-f="delta">—</div></div>
+          <span class="streak streak-zero" data-f="streak">—</span>
+        </div>
+        <div class="day">
+          <div class="item"><span class="ico">⚽</span><div><div class="lbl">Buts / jour</div><div class="dv v-goal" data-f="goals">0</div></div></div>
+          <div class="sep"></div>
+          <div class="item"><span class="ico">🧤</span><div><div class="lbl">Saves / jour</div><div class="dv v-save" data-f="saves">0</div></div></div>
+        </div>
+        <div class="np" data-f="np"></div>
+      </div></div>`,
+    // F4 — Boost (anneau)
+    () => `<div class="form f4">
+        <div class="ring"></div>
+        <div class="chip top"><span class="mmr" data-f="mmr">—</span><span class="rank" data-f="rank">—</span></div>
+        <div class="chip bot"><span class="wl"><b class="w" data-f="wins">0</b><span class="lbl">W</span> <b class="l" data-f="losses">0</b><span class="lbl">L</span></span></div>
+        <div class="chip lft"><span class="streak streak-zero" data-f="streak">—</span></div>
+        <div class="chip rgt"><span class="delta flat" data-f="delta">—</span></div>
+        <div class="np" data-f="np"></div>
+      </div>`
+  ];
+
+  const THEME_NAMES  = ['Bleu', 'Rocket', 'Néon', 'Émeraude', 'Crimson', 'Cyber', 'Or', 'Mono'];
+  const LAYOUT_NAMES = ['Minimal', 'Compact', 'Compétitif', 'Dashboard', 'Boost'];
+  let curTheme = 0, curLayout = 0;
+
+  function applyThemeClass() {
+    document.body.className = curTheme ? 't' + curTheme : '';
+  }
+  function applyTheme(idx, withToast) {
+    curTheme = ((idx % THEME_NAMES.length) + THEME_NAMES.length) % THEME_NAMES.length;
+    applyThemeClass();
+    if (withToast) showToast('🎨 ' + THEME_NAMES[curTheme]);
+  }
+  function applyLayout(idx, withToast) {
+    curLayout = ((idx % LAYOUT_NAMES.length) + LAYOUT_NAMES.length) % LAYOUT_NAMES.length;
+    renderForm();
+    if (withToast) showToast('🧩 ' + LAYOUT_NAMES[curLayout]);
+  }
+
+  // Cale la boîte FX sur la forme active + calcule l'échelle des anims selon
+  // sa taille (largeur de réf ≈ 210px). Hauteur réelle -> chute des confettis.
+  function syncFx() {
+    const f = $('stage').firstElementChild;
+    const box = $('fxbox');
+    if (!f) return;
+    const r = f.getBoundingClientRect();
+    box.style.left = r.left + 'px';
+    box.style.top = r.top + 'px';
+    box.style.width = r.width + 'px';
+    box.style.height = r.height + 'px';
+    const sc = Math.max(0.55, Math.min(1.3, r.width / 210));
+    box.style.setProperty('--fxs', sc.toFixed(3));
+    box.style.setProperty('--fall', Math.round(r.height + 18) + 'px');
+  }
+
+  // Rend la forme active dans #stage puis repeint avec l'état courant.
+  function renderForm() {
+    $('stage').innerHTML = FORMS[curLayout]();
+    paint();
+    syncFx();
+    replay($('stage').firstElementChild, 'appear');
+  }
+
+  // ---- Remplit tous les [data-f] présents dans la forme active. ----
+  function paint() {
+    const stage = $('stage');
+    const q = (n) => stage.querySelectorAll('[data-f="' + n + '"]');
+    const setText = (n, v) => q(n).forEach((e) => { e.textContent = v; });
+    const s = state;
+
+    setText('pl', s.playlist || '2v2');
+    setText('mmr', s.mmr == null ? '—' : s.mmr);
+
+    const rankTxt = s.rankTier
+      ? (s.rankDiv ? s.rankTier + ' · ' + s.rankDiv.replace('Division', 'Div') : s.rankTier)
+      : '—';
+    setText('rank', rankTxt);
+
+    q('rankIco').forEach((ic) => {
+      if (s.rankIcon) {
+        ic.onerror = () => { ic.onerror = null; ic.src = s.rankIcon; };
+        ic.src = iconLocal(s.rankIcon);
+        ic.style.display = '';
+      } else { ic.style.display = 'none'; }
+    });
+
+    // Delta MMR de session (signé + coloré).
+    const delta = (s.mmr != null && s.startMmr != null) ? s.mmr - s.startMmr : 0;
+    q('delta').forEach((e) => {
+      e.textContent = (delta > 0 ? '▲' : delta < 0 ? '▼' : '±') + Math.abs(delta);
+      e.classList.remove('up', 'down', 'flat');
+      e.classList.add(delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat');
+    });
+
+    setText('wins', s.wins ?? 0);
+    setText('losses', s.losses ?? 0);
+    const tot = (s.wins || 0) + (s.losses || 0);
+    setText('wr', tot ? Math.round((s.wins / tot) * 100) + '%' : '—');
+
+    if (s.mmr != null) {
+      const next = Math.ceil((s.mmr + 1) / BAND) * BAND;
+      const pct = ((s.mmr % BAND) / BAND) * 100;
+      q('barFill').forEach((e) => { e.style.width = pct.toFixed(1) + '%'; });
+      setText('barNext', '→ ' + next);
+    }
+
+    setText('goals', s.goals ?? 0);
+    setText('saves', s.saves ?? 0);
+
+    // Musique en cours (titre Spotify) : affichée seulement si une piste joue.
+    q('np').forEach((e) => {
+      if (s.spotify) { e.textContent = '🎵 ' + s.spotify.replace(' - ', ' – '); e.style.display = 'block'; }
+      else e.style.display = 'none';
+    });
+
+    // Streak : in-game (API) si dispo, sinon session (delta MMR).
+    const st = (s.gameStreak != null) ? s.gameStreak : (s.streak ?? 0);
+    q('streak').forEach((e) => {
+      e.classList.remove('streak-win', 'streak-loss', 'streak-zero');
+      if (st > 0) { e.textContent = '🔥' + st; e.classList.add('streak-win'); }
+      else if (st < 0) { e.textContent = (-st) + 'L'; e.classList.add('streak-loss'); }
+      else { e.textContent = '—'; e.classList.add('streak-zero'); }
+    });
+    // Anneau F4 : glow réagit à la streak.
+    const ring = stage.querySelector('.f4');
+    if (ring) { ring.classList.remove('rs-win', 'rs-loss'); if (st > 0) ring.classList.add('rs-win'); else if (st < 0) ring.classList.add('rs-loss'); }
+
+    syncFx(); // recale la boîte FX si la taille de la forme a changé
+  }
+
+  // ---- Effets ----
+  function playAppear() { replay($('stage').firstElementChild, 'appear'); }
+  function playSwap() { replay($('stage').firstElementChild, 'swap'); }
+  function pop(name) { $('stage').querySelectorAll('[data-f="' + name + '"]').forEach((e) => replay(e, 'pop')); }
+  function flash(kind) { const f = $('flash'); f.className = ''; void f.offsetWidth; f.className = (kind === 'win' ? 'win' : 'loss'); }
+
+  // ---- Sons (synthèse WebAudio, aucun fichier requis, marche packagé/offline).
+  //      tier up = fanfare montante ; div up = double blip court. ----
+  let _ac = null;
+  function audioCtx() {
+    try {
+      if (!_ac) _ac = new (window.AudioContext || window.webkitAudioContext)();
+      if (_ac.state === 'suspended') _ac.resume();
+      return _ac;
+    } catch { return null; }
+  }
+  function tone(freq, start, dur, type, peak) {
+    const ac = audioCtx(); if (!ac) return;
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type || 'triangle'; o.frequency.value = freq;
+    o.connect(g); g.connect(ac.destination);
+    const t = ac.currentTime + start;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak || 0.3, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.start(t); o.stop(t + dur + 0.05);
+  }
+  function playRankSound(kind) {
+    if (kind === 'tier') {
+      // Montée de grade : arpège ascendant C5-E5-G5-C6 + shimmer.
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, i * 0.10, 0.36, 'triangle', 0.34));
+      tone(1046.5, 0.30, 0.55, 'sawtooth', 0.10);
+    } else {
+      // Montée de division : double blip rapide E5 -> B5.
+      tone(659.25, 0.00, 0.16, 'square', 0.26);
+      tone(987.77, 0.10, 0.20, 'square', 0.26);
+    }
+  }
+
+  const CEL = {
+    win:  { text: 'WIN&nbsp;! 🎉', colors: ['#ffd95e','#ff7e1e','#4cf08a','#6cc6ff','#ff6b9d','#b388ff'] },
+    loss: { text: 'LOSS 💀',       colors: ['#ff6b6b','#c44','#8a93a8','#5a6072','#ff8e8e','#7a3030'] }
+  };
+  function celebrate(kind) {
+    syncFx(); // recale la boîte FX sur la forme active avant de centrer l'anim
+    const cfg = CEL[kind] || CEL.win;
+    const c = $('cel');
+    let html = '<div class="cel-glow"></div><div class="cel-text">' + cfg.text + '</div>';
+    for (let i = 0; i < 18; i++) {
+      const left = (Math.random() * 100).toFixed(1);
+      const col = cfg.colors[i % cfg.colors.length];
+      const dur = (0.9 + Math.random() * 0.7).toFixed(2);
+      const delay = (Math.random() * 0.3).toFixed(2);
+      html += `<div class="confetti" style="left:${left}%;background:${col};animation:fall ${dur}s ease-in ${delay}s forwards"></div>`;
+    }
+    c.className = 'show ' + kind;
+    c.innerHTML = html;
+    clearTimeout(c._t);
+    c._t = setTimeout(() => { c.className = ''; c.innerHTML = ''; }, 2100);
+  }
+
+  const RANK_STYLE = {
+    'Bronze':            { c: '#cd7f32', e: '🥉' },
+    'Silver':            { c: '#c8d2e0', e: '🥈' },
+    'Gold':              { c: '#ffd95e', e: '🥇' },
+    'Platinum':          { c: '#3fe0d0', e: '🔷' },
+    'Diamond':           { c: '#5aa9ff', e: '💠' },
+    'Champion':          { c: '#b06bff', e: '🏆' },
+    'Grand Champion':    { c: '#ff4d6d', e: '👑' },
+    'Supersonic Legend': { c: '#ff7e2f', e: '🚀' }
+  };
+  function rankUp(info) {
+    syncFx();                    // recale la boîte FX sur la forme active
+    playRankSound(info.kind);    // son : tier up (fanfare) vs div up (blip)
+    const st = RANK_STYLE[info.group] || RANK_STYLE['Gold'];
+    const c = $('cel');
+    const title = info.kind === 'tier' ? 'RANK UP !' : 'DIV UP !';
+    const sub = info.kind === 'tier' ? info.tier : info.tier + ' · ' + (info.div || '').replace('Division', 'Div');
+    let html =
+      `<div class="cel-glow" style="background:radial-gradient(circle at 50% 42%, ${hexA(st.c, 0.4)}, rgba(0,0,0,0) 68%)"></div>` +
+      `<div class="rankup">` +
+        `<div class="ru-top" style="color:${st.c};text-shadow:0 0 16px ${hexA(st.c, 0.75)}">${st.e} ${title}</div>` +
+        `<div class="ru-logowrap">` +
+          `<div class="ru-ring" style="border-color:${hexA(st.c, 0.55)}"></div>` +
+          imgTag('ru-logo', info.icon, `filter:drop-shadow(0 0 12px ${hexA(st.c, 0.85)})`) +
+        `</div>` +
+        `<div class="ru-sub">${sub}</div>` +
+      `</div>`;
+    const cols = [st.c, '#ffffff', st.c];
+    const n = info.kind === 'tier' ? 24 : 12;
+    for (let i = 0; i < n; i++) {
+      const left = (Math.random() * 100).toFixed(1);
+      const dur = (0.9 + Math.random() * 0.7).toFixed(2);
+      const delay = (Math.random() * 0.35).toFixed(2);
+      html += `<div class="confetti" style="left:${left}%;background:${cols[i % cols.length]};animation:fall ${dur}s ease-in ${delay}s forwards"></div>`;
+    }
+    c.className = 'show';
+    c.innerHTML = html;
+    clearTimeout(c._t);
+    c._t = setTimeout(() => { c.className = ''; c.innerHTML = ''; }, 2400);
+  }
+
+  function showToast(text) { const t = $('toast'); t.textContent = text; replay(t, 'show'); }
+  function showErr(msg) { $('err').style.display = 'block'; $('err').textContent = '⚠ ' + msg; }
+  function hideErr() { $('err').style.display = 'none'; }
+
+  // Easter egg : 1 défaite sur 50 déclenche un son meme.
+  const lossAudio = new Audio('sounds/loss-rare.mp3');
+  lossAudio.preload = 'auto';
+  lossAudio.volume = 0.85;
+  function playLossSound() {
+    try { lossAudio.currentTime = 0; lossAudio.play().catch(() => {}); } catch {}
+  }
+  function maybeLossSound() {
+    if (Math.random() < 1 / 50) playLossSound();
+  }
+
+  // Première forme avant le 1er message (évite un stage vide).
+  renderForm();
+
+  window.rl.onUpdate((d) => {
+    if (d.theme !== undefined) applyTheme(d.theme, d.themeToast);
+    if (d.layout !== undefined) applyLayout(d.layout, d.layoutToast);
+    if (d.toast) showToast(d.toast);
+    if (d.rankup) rankUp(d.rankup);
+    if (d.appear) playAppear();
+    if (d.celebrate) celebrate('win');
+    if (d.playLoss) playLossSound();   // hotkey Ctrl+Alt+E : test easter egg
+    if (d.spotify !== undefined) state.spotify = d.spotify;
+    if (d.error) { showErr(d.error); return; }
+    hideErr();
+
+    if (d.playlist) {
+      if (prevPlaylist !== null && d.playlist !== prevPlaylist) playSwap();
+      prevPlaylist = d.playlist;
+      state.playlist = d.playlist;
+    }
+    if (d.mmr != null) state.mmr = d.mmr;
+    if (d.startMmr !== undefined) state.startMmr = d.startMmr;
+    if (d.rankTier !== undefined) state.rankTier = d.rankTier;
+    if (d.rankDiv !== undefined) state.rankDiv = d.rankDiv;
+    if (d.rankIcon !== undefined) state.rankIcon = d.rankIcon;
+    if (d.gameStreak !== undefined) state.gameStreak = d.gameStreak;
+    if (d.goals != null) state.goals = d.goals;
+    if (d.saves != null) state.saves = d.saves;
+
+    if (d.wins !== undefined) {
+      state.wins = d.wins ?? 0;
+      state.losses = d.losses ?? 0;
+      state.streak = d.streak ?? 0;
+      if (prevW != null && state.wins > prevW) { flash('win'); pop('wins'); if (!d.rankup) celebrate('win'); }
+      if (prevL != null && state.losses > prevL) { flash('loss'); pop('losses'); celebrate('loss'); maybeLossSound(); }
+      prevW = state.wins; prevL = state.losses;
+    }
+
+    paint();
+  });
+</script>
+</body>
+</html>
