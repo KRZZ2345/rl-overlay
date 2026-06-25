@@ -22,7 +22,7 @@ const DEFAULT_CONFIG = {
   username: '',
   playlist: 'ranked-doubles',
   pollSeconds: 15,
-  overlay: { anchor: 'bottom-right', marginX: 320, marginY: 50, x: 20, y: 20, clickThrough: true, theme: 0, layout: 0 },
+  overlay: { anchor: 'bottom-right', marginX: 320, marginY: 50, x: 20, y: 20, clickThrough: true, theme: 0, layout: 5 },
   // Discord Rich Presence : affiche MMR/rang live sur ton profil Discord.
   // clientId = "Application ID" d'une app creee sur discord.com/developers
   // (1 min, voir README). Vide = desactive. largeImageKey = cle d'un asset
@@ -195,7 +195,7 @@ function createWindow() {
 }
 
 const THEME_COUNT = 8;
-const LAYOUT_COUNT = 5;
+const LAYOUT_COUNT = 6; // f0-f4 + Premium f5 (V2)
 
 // Passe au thème suivant, persiste, et notifie le renderer (avec toast).
 function cycleTheme() {
