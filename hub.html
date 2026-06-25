@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="theme-v2.css" />
+<style>
+  /* Layout propre au Hub (le skin/tokens viennent de theme-v2.css). */
+  html, body { height: 100%; margin: 0; background: var(--bg); color: var(--txt);
+    font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
+  .hub { display: flex; flex-direction: column; gap: 14px; height: 100%;
+    box-sizing: border-box; padding: 22px 26px; }
+  .label { color: var(--muted); text-transform: uppercase; letter-spacing: .14em; font-size: 11px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+
+  /* Bande héros : domine visuellement. */
+  .hero { display: grid; grid-template-columns: auto 1fr auto; gap: 26px; align-items: center; }
+  .hero .mmr { font-weight: 300; font-size: 76px; line-height: .9;
+    font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+  .hero .delta { font-style: italic; color: var(--muted); margin-top: 4px; }
+  .rankblock .tier { font-size: 22px; font-weight: 600; }
+  .peak { text-align: right; }
+  .promo { margin-top: 6px; }
+  .bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0;
+    background: linear-gradient(90deg, var(--aA), var(--aB)); }
+
+  .row { display: grid; gap: 14px; }
+  .row.r2 { grid-template-columns: 1fr 1fr; }
+  .row.r3 { grid-template-columns: 1fr 1fr; }
+  .widgets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .widget .big { font-size: 26px; font-weight: 600; margin-top: 4px; }
+
+  /* Momentum-10. */
+  .mom { display: flex; gap: 4px; margin-top: 8px; }
+  .mom > span { flex: 1; height: 22px; border-radius: 4px; background: var(--line); }
+  .mom > span.w { background: var(--good); }
+  .mom > span.l { background: var(--loss); }
+
+  .ins { margin: 6px 0 0; padding: 0; list-style: none; }
+  .ins li { padding: 4px 0; color: var(--txt); }
+
+  /* Ranked Journey. */
+  .journey { display: flex; gap: 6px; margin-top: 10px; }
+  .journey > span { flex: 1; text-align: center; font-size: 10px; color: var(--dim);
+    padding-top: 14px; border-top: 3px solid var(--line); }
+  .journey > span.on { color: var(--txt); border-top-color: var(--aB); }
+  .journey > span.cur { color: var(--hot); border-top-color: var(--hot); }
+
+  /* Tilt : caché par défaut. */
+  #tilt { display: none; border-color: var(--loss); color: var(--loss); }
+  body.tilted #tilt { display: block; }
+
+  /* État chaud (token Octane), piloté par body.hot. */
+  body.hot .pill { color: var(--bg); background: linear-gradient(90deg, var(--hot), var(--hot2)); }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 99px;
+    background: var(--line); color: var(--muted); font-size: 13px; }
+
+  .hint { position: fixed; bottom: 8px; right: 12px; color: var(--dim); font-size: 11px; }
+</style>
+</head>
+<body>
+  <div class="hub">
+    <!-- Héros -->
+    <section class="card hero">
+      <div class="rankblock">
+        <div class="tier" data-f="tier">—</div>
+        <div class="label" data-f="playlist">—</div>
+      </div>
+      <div>
+        <div class="mmr" data-f="mmr">—</div>
+        <div class="delta"><span data-f="delta">—</span> · <span class="pill" data-f="streak">—</span></div>
+        <div class="promo">
+          <div class="label" data-f="promoLabel">—</div>
+          <div class="bar"><i data-f="promoBar"></i></div>
+        </div>
+      </div>
+      <div class="peak">
+        <div class="label">Peak</div>
+        <div class="big" data-f="peak">—</div>
+        <div class="label" data-f="peakSince">—</div>
+      </div>
+    </section>
+
+    <!-- Bande 2 : pouls de session -->
+    <div class="row r2">
+      <section class="card">
+        <div class="label">Momentum-10 · <span data-f="momLabel">—</span></div>
+        <div class="mom" data-f="mom"></div>
+      </section>
+      <section class="card">
+        <div class="label">Session</div>
+        <div class="big"><span data-f="sWins">0</span>W – <span data-f="sLosses">0</span>L · <span data-f="sNet">0</span> MMR</div>
+        <div class="label">Confiance <span data-f="conf">0</span> / 100 · <span data-f="time">0:00</span></div>
+      </section>
+    </div>
+
+    <!-- Bande 3 : journey + insights -->
+    <div class="row r3">
+      <section class="card">
+        <div class="label">Ranked Journey</div>
+        <div class="journey" data-f="journey"></div>
+      </section>
+      <section class="card">
+        <div class="label">Insights</div>
+        <ul class="ins" data-f="insights"></ul>
+      </section>
+    </div>
+
+    <!-- Bande 4 : widgets -->
+    <div class="widgets">
+      <section class="card widget"><div class="label">Défi du jour</div><div class="big" data-f="dailyLabel">—</div><div class="bar"><i data-f="dailyBar"></i></div></section>
+      <section class="card widget"><div class="label">Consistance</div><div class="big" data-f="consist">—</div></section>
+      <section class="card widget"><div class="label">Boost / session</div><div class="big" data-f="heat">—</div></section>
+      <section class="card widget"><div class="label">Objectif</div><div class="big" data-f="goalLabel">—</div><div class="bar"><i data-f="goalBar"></i></div></section>
+    </div>
+
+    <section class="card" id="tilt" data-f="tilt">⚠ —</section>
+  </div>
+  <div class="hint">Échap ou Ctrl+Alt+Espace pour fermer</div>
+
+<script>
+  const $ = (f) => document.querySelector(`[data-f="${f}"]`);
+  const txt = (f, v) => { const el = $(f); if (el) el.textContent = v; };
+  const TIERS = ['Bronze','Argent','Or','Platine','Diamant','Champion','GC','SSL'];
+  // Mappe un tier API ('Diamond II', 'Grand Champion I', 'Supersonic Legend') vers l'index TIERS.
+  function tierIndex(tier) {
+    const t = (tier || '').toLowerCase();
+    if (t.includes('supersonic')) return 7;
+    if (t.includes('grand')) return 6;
+    if (t.includes('champion')) return 5;
+    if (t.includes('diamond')) return 4;
+    if (t.includes('plat')) return 3;
+    if (t.includes('gold')) return 2;
+    if (t.includes('silver')) return 1;
+    if (t.includes('bronze')) return 0;
+    return -1;
+  }
+  function fmtTime(ms) {
+    const s = Math.floor((ms || 0) / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+    return h > 0 ? `${h}:${String(m).padStart(2,'0')}` : `${m}:${String(s % 60).padStart(2,'0')}`;
+  }
+
+  function paint(vm) {
+    if (!vm) return;
+    document.body.classList.toggle('hot', !!vm.hot);
+    document.body.classList.toggle('tilted', !!(vm.heuristics && vm.heuristics.tilt && vm.heuristics.tilt.tilted));
+
+    // Héros.
+    txt('tier', (vm.rank && vm.rank.tier) ? `${vm.rank.tier} ${vm.rank.division || ''}`.trim() : '—');
+    txt('playlist', vm.rank && vm.rank.playlist ? vm.rank.playlist : '—');
+    txt('mmr', vm.mmr != null ? vm.mmr : '—');
+    txt('delta', (vm.deltaSession > 0 ? '▲ +' : vm.deltaSession < 0 ? '▼ ' : '') + (vm.deltaSession || 0));
+    txt('streak', '🔥 ' + (vm.streak || 0));
+    txt('promoLabel', `Vers la division suivante — ${vm.promotion.matchesNeeded} match(s) · ${vm.promotion.mmrToNext} MMR`);
+    const pb = $('promoBar'); if (pb) pb.style.width = (vm.promotion.pct || 0) + '%';
+    txt('peak', vm.records.peak != null ? vm.records.peak : '—');
+    txt('peakSince', vm.records.peak != null ? `écart ${vm.records.gap} · ${vm.records.daysSince} j` : '—');
+
+    // Momentum-10.
+    const mom = $('mom');
+    if (mom) {
+      mom.innerHTML = '';
+      (vm.momentum.results || []).forEach((w) => {
+        const sp = document.createElement('span');
+        sp.className = w ? 'w' : 'l';
+        mom.appendChild(sp);
+      });
+    }
+    txt('momLabel', vm.momentum.label || '—');
+
+    // Session + confiance.
+    txt('sWins', vm.session.wins); txt('sLosses', vm.session.losses);
+    txt('sNet', (vm.session.mmrNet > 0 ? '+' : '') + vm.session.mmrNet);
+    txt('conf', vm.heuristics.confidence);
+    txt('time', fmtTime(vm.session.timeMs));
+
+    // Journey.
+    const j = $('journey');
+    if (j) {
+      const cur = tierIndex(vm.rank && vm.rank.tier);
+      j.innerHTML = '';
+      TIERS.forEach((name, i) => {
+        const sp = document.createElement('span');
+        sp.textContent = name;
+        if (i < cur) sp.className = 'on';
+        else if (i === cur) sp.className = 'cur';
+        j.appendChild(sp);
+      });
+    }
+
+    // Insights.
+    const ul = $('insights');
+    if (ul) {
+      ul.innerHTML = '';
+      (vm.insights || []).forEach((it) => {
+        const li = document.createElement('li');
+        li.textContent = `${it.icon} ${it.text}`;
+        ul.appendChild(li);
+      });
+      if (!vm.insights || vm.insights.length === 0) ul.innerHTML = '<li class="label">Pas encore de données</li>';
+    }
+
+    // Widgets.
+    txt('dailyLabel', vm.daily ? vm.daily.label : '—');
+    const db = $('dailyBar'); if (db) db.style.width = (vm.daily ? vm.daily.pct : 0) + '%';
+    txt('consist', vm.heuristics.consistency ? vm.heuristics.consistency.grade : '—');
+    txt('heat', (vm.boost || 0) + '%');
+    const g0 = (vm.goals && vm.goals[0]) || null;
+    txt('goalLabel', g0 ? g0.label : '—');
+    const gb = $('goalBar'); if (gb) gb.style.width = (g0 ? g0.pct : 0) + '%';
+
+    // Tilt.
+    if (vm.heuristics && vm.heuristics.tilt && vm.heuristics.tilt.tilted) {
+      txt('tilt', '⚠ ' + vm.heuristics.tilt.reason);
+    }
+  }
+
+  window.hub.onUpdate(paint);
+  // Échap ferme le Hub (lecture seule : seul input autorisé).
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.hub.close(); });
+</script>
+</body>
+</html>
