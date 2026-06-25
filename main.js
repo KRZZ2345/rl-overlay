@@ -6,7 +6,7 @@ const { fetchStats, closeHidden } = require('./tracker');
 const { DiscordRPC } = require('./discord-rpc');
 const { loadHistory, saveHistory } = require('./lib/history-store');
 const { recordSample } = require('./lib/history');
-const { buildHudViewModel } = require('./lib/viewmodel');
+const { buildViewModel } = require('./lib/viewmodel');
 
 // Nom du process de Rocket League (sans .exe) tel que renvoyé par Get-Process.
 const RL_PROCESS = 'RocketLeague';
@@ -86,6 +86,8 @@ let win;
 let session;
 let history; // état du store d'historique persistant (playlist sélectionnée)
 let sessionStart = 0; // début de la session de jeu en cours (pour le chrono HUD), indépendant de Discord
+let hubWin = null;   // fenêtre Hub plein écran (lazy : null tant que fermée)
+let lastVm = null;   // dernier view-model complet (poussé au Hub à l'ouverture)
 let clickThrough = true;
 
 // --- Discord Rich Presence ---
@@ -288,13 +290,19 @@ async function poll() {
     const rankup = detectRankUp(sel, m); // montée de rang/division -> anim
 
     // View-model HUD (métriques dérivées) — source unique, renderer = affichage.
-    const vm = buildHudViewModel({
+    const cfgNow = loadConfig();
+    const vm = buildViewModel({
       mmr, startMmr: ref.start,
       events: history ? history.events : [],
       gameStreak: m.streak ?? null,
       session: session.total,
-      sessionStart, now: Date.now()
+      sessionStart, now: Date.now(),
+      state: history || null,
+      rank: { tier: m.tier || null, division: m.div || null, playlist: shortPlaylist(sel) },
+      dayKey: today(),
+      goalsCfg: Array.isArray(cfgNow.goals) ? cfgNow.goals : null
     });
+    lastVm = vm;
 
     const payload = {
       mmr, playlist: shortPlaylist(sel),
@@ -306,6 +314,7 @@ async function poll() {
       ...session.total
     };
     sendUpdate(payload);
+    pushHub(); // met à jour le Hub s'il est ouvert
     updatePresence(payload); // miroir sur Discord
   } finally {
     polling = false;
@@ -351,6 +360,49 @@ function sendUpdate(data) {
   if (win && !win.isDestroyed()) win.webContents.send('update', data);
 }
 
+// --- Hub plein écran (lazy, lecture seule) ---
+function pushHub() {
+  if (hubWin && !hubWin.isDestroyed() && lastVm) {
+    hubWin.webContents.send('hub-update', lastVm);
+  }
+}
+
+function openHub() {
+  if (hubWin && !hubWin.isDestroyed()) { hubWin.focus(); return; }
+  const work = screen.getPrimaryDisplay().workAreaSize;
+  hubWin = new BrowserWindow({
+    width: Math.min(1100, work.width - 80),
+    height: Math.min(720, work.height - 80),
+    show: false,
+    frame: false,
+    transparent: false,
+    backgroundColor: '#0a0b0e', // = token --bg, évite le flash blanc
+    resizable: true,
+    skipTaskbar: false,
+    alwaysOnTop: false,
+    focusable: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'hub-preload.js'),
+      contextIsolation: true
+    }
+  });
+  hubWin.center();
+  hubWin.once('ready-to-show', () => { hubWin.show(); hubWin.focus(); });
+  // Pousse le dernier view-model connu dès que la page est prête (jamais de vide).
+  hubWin.webContents.on('did-finish-load', () => pushHub());
+  hubWin.on('closed', () => { hubWin = null; });
+  hubWin.loadFile('hub.html');
+}
+
+function closeHub() {
+  if (hubWin && !hubWin.isDestroyed()) hubWin.close();
+}
+
+function toggleHub() {
+  if (hubWin && !hubWin.isDestroyed()) closeHub();
+  else openHub();
+}
+
 // Change la playlist AFFICHÉE (1v1 / 2v2 / 3v3) et persiste le choix.
 // Le total W/L est global, seul le MMR affiché change.
 function switchPlaylist(pl) {
@@ -375,6 +427,7 @@ function resetCurrent() {
 
 // IPC : reset de session, déclenché par un raccourci.
 ipcMain.handle('reset-session', () => resetCurrent());
+ipcMain.handle('hub-close', () => closeHub());
 
 // IPC : enregistre plateforme + pseudo. Sert au 1er lancement ET à la
 // reconfiguration (Ctrl+Alt+P) si on s'est trompé de pseudo.
@@ -576,6 +629,9 @@ function startOverlay() {
   startFocusWatcher();
 
   globalShortcut.register('CommandOrControl+Alt+R', () => resetCurrent());
+
+  // Ctrl+Alt+Espace : ouvre/ferme le Hub plein écran (lazy).
+  globalShortcut.register('CommandOrControl+Alt+Space', () => toggleHub());
 
   // Ctrl+Alt+W : prévisualise l'animation de victoire (test du rendu).
   globalShortcut.register('CommandOrControl+Alt+W', () => sendUpdate({ celebrate: true }));
