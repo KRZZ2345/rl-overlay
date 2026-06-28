@@ -23,7 +23,7 @@ const DEFAULT_CONFIG = {
   username: '',
   playlist: 'ranked-doubles',
   pollSeconds: 15,
-  overlay: { anchor: 'bottom-right', marginX: 320, marginY: 50, x: 20, y: 20, clickThrough: true, theme: 0, layout: 5 },
+  overlay: { anchor: 'bottom-right', marginX: 320, marginY: 50, x: 20, y: 20, clickThrough: true, theme: 0, layout: 5, tutoSeen: false },
   // Discord Rich Presence : affiche MMR/rang live sur ton profil Discord.
   // clientId = "Application ID" d'une app creee sur discord.com/developers
   // (1 min, voir README). Vide = desactive. largeImageKey = cle d'un asset
@@ -364,10 +364,14 @@ function sendUpdate(data) {
 }
 
 // --- Hub plein écran (lazy, lecture seule) ---
+let showKeysOnce = false; // arme l'affichage de la page touches au prochain push Hub
+
 function pushHub() {
   if (hubWin && !hubWin.isDestroyed() && lastVm) {
     const theme = (loadConfig().overlay.theme || 0) % THEME_COUNT;
-    hubWin.webContents.send('hub-update', { ...lastVm, _theme: theme });
+    const payload = { ...lastVm, _theme: theme };
+    if (showKeysOnce) { payload._showKeys = true; showKeysOnce = false; }
+    hubWin.webContents.send('hub-update', payload);
   }
 }
 
@@ -451,9 +455,15 @@ ipcMain.handle('save-setup', (_e, data) => {
   // Nouveau joueur -> on repart sur une session vierge (MMR/stats différents).
   if (changed) { session = freshSession(); saveSession(session); }
 
-  if (!overlayStarted) startOverlay(); // 1er lancement
+  const firstRun = !overlayStarted && !cfg.overlay.tutoSeen;
+  if (!overlayStarted) startOverlay(); // 1er lancement (NE force PAS la visibilité du HUD)
   else poll();                          // reconfiguration : on rafraîchit
   if (setupWin && !setupWin.isDestroyed()) setupWin.close();
+  if (firstRun) {
+    cfg.overlay.tutoSeen = true; saveConfig(cfg); // page touches : auto une seule fois
+    showKeysOnce = true;
+    openHub(); // pushHub() est appelé au did-finish-load du Hub -> envoie _showKeys
+  }
   return true;
 });
 
