@@ -702,12 +702,54 @@ function startOverlay() {
   globalShortcut.register('CommandOrControl+Alt+3', () => switchPlaylist('ranked-standard'));
 }
 
+// Helper de swap : attend la fin de l'app, mirroir le staged sur l'install, relance.
+// robocopy /MIR : 0-7 = succès. On ne purge le staged/pending qu'après succès
+// -> si le swap échoue, l'ancienne version survit et retentera au prochain boot.
+const APPLY_UPDATE_PS = `param([int]$ParentPid,[string]$Staged,[string]$Install,[string]$Exe)
+try { Wait-Process -Id $ParentPid -Timeout 30 -ErrorAction SilentlyContinue } catch {}
+Start-Sleep -Milliseconds 600
+robocopy $Staged $Install /MIR /NFL /NDL /NJH /NJS /NC /NS | Out-Null
+if ($LASTEXITCODE -lt 8) {
+  $upd = Split-Path $Staged
+  Remove-Item -Recurse -Force $Staged -ErrorAction SilentlyContinue
+  Remove-Item -Force (Join-Path $upd 'pending.json') -ErrorAction SilentlyContinue
+}
+Start-Process -FilePath $Exe
+`;
+
+// Si un update est stagé, lance le helper détaché et signale qu'il faut quitter.
+function applyPendingUpdate() {
+  try {
+    if (!app.isPackaged) return false; // en dev, l'install = node_modules/electron
+    const dir = path.join(app.getPath('userData'), 'update');
+    const pendingPath = path.join(dir, 'pending.json');
+    if (!fs.existsSync(pendingPath)) return false;
+    const { stagedDir } = JSON.parse(fs.readFileSync(pendingPath, 'utf8'));
+    const helper = path.join(dir, 'apply-update.ps1');
+    if (!fs.existsSync(helper) || !stagedDir || !fs.existsSync(stagedDir)) return false;
+    const exe = app.getPath('exe');
+    const installDir = path.dirname(exe);
+    const child = spawn('powershell.exe', [
+      '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', helper,
+      '-ParentPid', String(process.pid), '-Staged', stagedDir, '-Install', installDir, '-Exe', exe
+    ], { detached: true, stdio: 'ignore' });
+    child.unref();
+    logFocus('applyPendingUpdate: helper lancé, quit pour swap');
+    return true;
+  } catch (e) {
+    logFocus('applyPendingUpdate error: ' + e.message);
+    return false;
+  }
+}
+
 // Empêche les doublons d'overlay : une seule instance peut tourner.
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 }
 
 app.whenReady().then(() => {
+  // Avant tout : si un update est prêt, on le pose et on quitte (l'helper relance).
+  if (applyPendingUpdate()) { app.quit(); return; }
   // Lancement auto au démarrage de Windows (overlay toujours dispo en fond).
   if (process.platform === 'win32' && app.isPackaged) {
     app.setLoginItemSettings({ openAtLogin: true });
