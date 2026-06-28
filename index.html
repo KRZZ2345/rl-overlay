@@ -159,18 +159,18 @@
 
   /* ---- F4 — Badge : compact (shield rang + tier + MMR) ---- */
   .fbadge .card {
-    display: flex; align-items: center; gap: 11px; width: max-content;
-    padding: 11px 15px; border-radius: 14px;
+    display: flex; align-items: center; gap: 9px; width: max-content;
+    padding: 8px 12px; border-radius: 12px;
     background: var(--card); border: 1px solid var(--line);
     box-shadow: 0 10px 26px rgba(0,0,0,0.5);
   }
-  .fbadge .bshield { width: 38px; height: 38px; object-fit: contain;
+  .fbadge .bshield { width: 30px; height: 30px; object-fit: contain;
     filter: drop-shadow(0 0 6px color-mix(in srgb, var(--aA) 45%, transparent)); }
   .fbadge .bcol { display: flex; flex-direction: column; }
-  .fbadge .btier { font-size: 11px; font-weight: 700; letter-spacing: 1.4px;
+  .fbadge .btier { font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
     text-transform: uppercase; color: var(--muted); }
-  .fbadge .bmmrrow { display: flex; align-items: baseline; gap: 8px; }
-  .fbadge .bmmr { font-size: 30px; font-weight: 300; line-height: 1.05; color: var(--txt); }
+  .fbadge .bmmrrow { display: flex; align-items: baseline; gap: 7px; }
+  .fbadge .bmmr { font-size: 25px; font-weight: 300; line-height: 1.05; color: var(--txt); }
   .fbadge .bdelta { font-size: 13px; font-weight: 700; font-style: italic; }
   .fbadge .bdelta.up { color: var(--good); }
   .fbadge .bdelta.down { color: var(--loss); }
@@ -369,14 +369,13 @@
         </div>
         <div class="np" data-f="np"></div>
       </div></div>`,
-    // F4 — Badge (compact : shield rang + MMR)
+    // F4 — Badge (compact : shield rang + MMR ; pas de musique)
     () => `<div class="form fbadge"><div class="card">
         <img class="bshield" data-f="rankIco" style="display:none" alt="">
         <div class="bcol">
-          <span class="btier" data-f="rank">—</span>
+          <span class="btier" data-f="tierShort">—</span>
           <span class="bmmrrow"><span class="bmmr" data-f="mmr">—</span><span class="bdelta delta flat" data-f="delta">—</span></span>
         </div>
-        <div class="np" data-f="np"></div>
       </div></div>`
     ,
     // F5 — Premium : Rank Shield + MMR géant + promo + Momentum-10 + élan + pied
@@ -457,6 +456,7 @@
       ? (s.rankDiv ? s.rankTier + ' · ' + s.rankDiv.replace('Division', 'Div') : s.rankTier)
       : '—';
     setText('rank', rankTxt);
+    setText('tierShort', s.rankTier || '—'); // Badge : tier seul (sans division), plus court
 
     q('rankIco').forEach((ic) => {
       if (s.rankIcon) {
