@@ -7,6 +7,7 @@ const { DiscordRPC } = require('./discord-rpc');
 const { loadHistory, saveHistory } = require('./lib/history-store');
 const { recordSample } = require('./lib/history');
 const { buildViewModel } = require('./lib/viewmodel');
+const { isNewer, pickAsset, repoSlug } = require('./lib/updater');
 
 // Nom du process de Rocket League (sans .exe) tel que renvoyé par Get-Process.
 const RL_PROCESS = 'RocketLeague';
@@ -280,6 +281,7 @@ async function poll() {
     } catch (e) {
       logFocus && logFocus('history write ERREUR: ' + e.message);
     }
+    checkForUpdate(); // une seule fois, en fond, jamais bloquant
 
     const goals = dayDelta('goals', stats.goals);
     const saves = dayDelta('saves', stats.saves);
@@ -502,6 +504,59 @@ function logFocus(msg) {
       `[${new Date().toISOString()}] ${msg}\n`
     );
   } catch {}
+}
+
+// ---- Auto-update (check au 1er poll, staging en fond, swap au prochain boot) ----
+let updateChecked = false;
+
+function extractZip(zip, dest) {
+  return new Promise((resolve, reject) => {
+    const p = spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command',
+      `Expand-Archive -LiteralPath '${zip}' -DestinationPath '${dest}' -Force`], { stdio: 'ignore' });
+    p.on('exit', (c) => (c === 0 ? resolve() : reject(new Error('unzip exit ' + c))));
+    p.on('error', reject);
+  });
+}
+
+async function downloadAndStage(url, version) {
+  const dir = path.join(app.getPath('userData'), 'update');
+  fs.rmSync(dir, { recursive: true, force: true });
+  fs.mkdirSync(dir, { recursive: true });
+  const zipPath = path.join(dir, `RL-Overlay-${version}.zip`);
+  const res = await fetch(url, { headers: { 'User-Agent': 'rl-overlay' } });
+  if (!res.ok) throw new Error('download ' + res.status);
+  fs.writeFileSync(zipPath, Buffer.from(await res.arrayBuffer()));
+  const stagedDir = path.join(dir, 'staged');
+  await extractZip(zipPath, stagedDir);
+  if (!fs.existsSync(path.join(stagedDir, 'RL Overlay.exe'))) {
+    fs.rmSync(dir, { recursive: true, force: true });
+    throw new Error('staged exe manquant');
+  }
+  fs.writeFileSync(path.join(dir, 'apply-update.ps1'), APPLY_UPDATE_PS);
+  fs.writeFileSync(path.join(dir, 'pending.json'), JSON.stringify({ version, stagedDir }));
+  logFocus('update stagé: ' + version);
+}
+
+async function checkForUpdate() {
+  if (updateChecked || !app.isPackaged) return;
+  updateChecked = true;
+  try {
+    const pkg = require('./package.json');
+    const slug = repoSlug(pkg);
+    if (!slug) return;
+    const res = await fetch(`https://api.github.com/repos/${slug}/releases/latest`, {
+      signal: AbortSignal.timeout(5000),
+      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'rl-overlay' }
+    });
+    if (!res.ok) return;
+    const rel = await res.json();
+    if (!isNewer(rel.tag_name, pkg.version)) return;
+    const asset = pickAsset(rel, 'RL-Overlay-win-x64.zip');
+    if (!asset) return;
+    await downloadAndStage(asset.browser_download_url, rel.tag_name.replace(/^v/i, ''));
+  } catch (e) {
+    logFocus('checkForUpdate: ' + e.message);
+  }
 }
 
 function setOverlayVisible(v) {
