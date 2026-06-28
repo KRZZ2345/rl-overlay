@@ -8,21 +8,33 @@
   html, body { height: 100%; margin: 0; background: var(--bg); color: var(--txt);
     font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
   .hub { display: flex; flex-direction: column; gap: 14px; height: 100%;
-    box-sizing: border-box; padding: 22px 26px; }
+    box-sizing: border-box; padding: 22px 26px;
+    background: radial-gradient(120% 90% at 80% -10%, #14161e, #070809 70%); }
   .label { color: var(--muted); text-transform: uppercase; letter-spacing: .14em; font-size: 11px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+  .card { position: relative; background: linear-gradient(180deg, #101218, #0b0c10);
+    border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
 
-  /* Bande héros : domine visuellement. */
-  .hero { display: grid; grid-template-columns: auto 1fr auto; gap: 26px; align-items: center; }
+  /* Bande héros : domine visuellement + embrasement Octane discret en bas. */
+  .hero { display: grid; grid-template-columns: auto 1fr auto; gap: 26px; align-items: center;
+    overflow: hidden; }
+  .hero::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 70%;
+    background: radial-gradient(90% 130% at 50% 120%, rgba(255,150,60,.10), transparent 60%);
+    pointer-events: none; }
+  .hero > * { position: relative; z-index: 1; }
   .hero .mmr { font-weight: 300; font-size: 76px; line-height: .9;
-    font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+    font-variant-numeric: tabular-nums; letter-spacing: -.03em;
+    text-shadow: 0 0 22px rgba(120,160,255,.28); }
   .hero .delta { font-style: italic; color: var(--muted); margin-top: 4px; }
   .rankblock .tier { font-size: 22px; font-weight: 600; }
   .peak { text-align: right; }
   .promo { margin-top: 6px; }
   .bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
   .bar > i { display: block; height: 100%; width: 0;
-    background: linear-gradient(90deg, var(--aA), var(--aB)); }
+    background: linear-gradient(90deg, var(--aA), var(--aB));
+    box-shadow: 0 0 8px rgba(120,140,255,.6); }
+  /* Variante Octane (Daily / Boost). */
+  .bar.hot > i { background: linear-gradient(90deg, var(--hot), var(--hot2));
+    box-shadow: 0 0 8px rgba(255,170,70,.7); }
 
   .row { display: grid; gap: 14px; }
   .row.r2 { grid-template-columns: 1fr 1fr; }
@@ -51,7 +63,9 @@
   body.tilted #tilt { display: block; }
 
   /* État chaud (token Octane), piloté par body.hot. */
-  body.hot .pill { color: var(--bg); background: linear-gradient(90deg, var(--hot), var(--hot2)); }
+  body.hot .pill { color: var(--bg); font-weight: 800; font-style: italic;
+    background: linear-gradient(100deg, var(--hot), var(--hot2));
+    box-shadow: 0 0 14px rgba(255,158,77,.6); }
   .pill { display: inline-block; padding: 2px 10px; border-radius: 99px;
     background: var(--line); color: var(--muted); font-size: 13px; }
 
@@ -108,7 +122,7 @@
 
     <!-- Bande 4 : widgets -->
     <div class="widgets">
-      <section class="card widget"><div class="label">Défi du jour</div><div class="big" data-f="dailyLabel">—</div><div class="bar"><i data-f="dailyBar"></i></div></section>
+      <section class="card widget"><div class="label">Défi du jour</div><div class="big" data-f="dailyLabel">—</div><div class="bar hot"><i data-f="dailyBar"></i></div></section>
       <section class="card widget"><div class="label">Consistance</div><div class="big" data-f="consist">—</div></section>
       <section class="card widget"><div class="label">Boost / session</div><div class="big" data-f="heat">—</div></section>
       <section class="card widget"><div class="label">Objectif</div><div class="big" data-f="goalLabel">—</div><div class="bar"><i data-f="goalBar"></i></div></section>

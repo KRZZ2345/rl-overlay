@@ -3,13 +3,17 @@
    (form Premium f5) et hub.html (Plan 3). Scopé sous .f5 pour ne
    pas perturber les formes f0-f4 ni les thèmes cyclables.
    ============================================================ */
-.f5 {
+/* Tokens partagés au :root → atteignent le HUD f5 ET le Hub (hub.html).
+   Noms distincts des thèmes f0-f4 d'index.html (--accent/--accent2/--bg1)
+   donc aucun clash. */
+:root {
   --bg: #0a0b0e;   --card: #0e0f13;  --line: #191b22;
   --txt: #f4f5f7;  --muted: #868d9c; --dim: #5c6270;
   --aA: #5b8cff;   --aB: #b489ff;                /* froid : bleu -> violet */
   --good: #3ad29f; --loss: #ff5d6c;
   --hot: #ff9e4d;  --hot2: #ffd36b;              /* Octane : RÉSERVÉ "chaud" */
-
+}
+.f5 {
   width: 240px; margin: 3px; color: var(--txt);
 }
 .f5 .card {
