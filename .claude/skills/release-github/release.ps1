@@ -17,12 +17,14 @@ if (-not $gh) { throw "gh CLI absent. winget install GitHub.cli" }
 if (git status --porcelain) { throw "Arbre git non propre. Commit/stash d'abord." }
 if (-not (git remote get-url origin 2>$null)) { throw "Pas de remote 'origin'. Voir SKILL.md (setup)." }
 
-# 2. Bump version package.json
-$pkg = Get-Content package.json -Raw | ConvertFrom-Json
+# 2. Bump version package.json (édition ciblée de la ligne version : préserve le
+#    formatage ET écrit en UTF-8 SANS BOM — @electron/packager rejette un BOM).
+$raw = Get-Content package.json -Raw
+$cur = ([regex]'"version"\s*:\s*"([^"]+)"').Match($raw).Groups[1].Value
 if ($Version) {
   $new = $Version
 } else {
-  $p = $pkg.version.Split('.') | ForEach-Object { [int]$_ }
+  $p = $cur.Split('.') | ForEach-Object { [int]$_ }
   switch ($Bump) {
     'major' { $p[0]++; $p[1] = 0; $p[2] = 0 }
     'minor' { $p[1]++; $p[2] = 0 }
@@ -30,19 +32,22 @@ if ($Version) {
   }
   $new = "$($p[0]).$($p[1]).$($p[2])"
 }
-$pkg.version = $new
-($pkg | ConvertTo-Json -Depth 20) | Set-Content package.json -Encoding utf8
+$raw = [regex]::Replace($raw, '("version"\s*:\s*")[^"]+(")', "`${1}$new`$2", 1)
+[System.IO.File]::WriteAllText("$root\package.json", $raw)  # UTF-8 sans BOM
 Write-Host "Version -> $new"
 
-# 3. Build le zip distribuable (kill instance + package + zip, pas de relance)
-powershell -ExecutionPolicy Bypass -File ".claude\skills\run-rl-overlay\build-run.ps1" -NoLaunch
+# 3. Build le zip distribuable (kill instance + package + zip, pas de relance).
+#    On supprime un zip périmé AVANT pour qu'un build raté ne passe pas inaperçu.
 $zip = "dist\RL-Overlay-win-x64.zip"
+Remove-Item $zip -Force -ErrorAction SilentlyContinue
+powershell -ExecutionPolicy Bypass -File ".claude\skills\run-rl-overlay\build-run.ps1" -NoLaunch
+if ($LASTEXITCODE -ne 0) { throw "Build échoué (build-run.ps1, code $LASTEXITCODE)" }
 if (-not (Test-Path $zip)) { throw "Zip introuvable: $zip" }
 
-# 4. Git commit + tag + push
+# 4. Git commit + tag (annoté, pour qu'il soit poussé par --follow-tags) + push
 git add package.json
 git commit -m "release: v$new"
-git tag "v$new"
+git tag -a "v$new" -m "v$new"
 git push --follow-tags
 
 # 5. GitHub Release (notes auto-generees)
