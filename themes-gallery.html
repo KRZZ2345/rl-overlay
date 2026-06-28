@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>RL Overlay — Galerie de thèmes</title>
+<style>
+  /* ============================================================
+     Galerie de propositions de thèmes pour l'overlay RL.
+     Standalone : ouvrir directement dans Chrome (file://).
+     Chaque tuile = le panneau "Premium" rendu avec un thème distinct.
+     Données d'exemple figées. Aucun lien avec l'app — preview pur.
+     ============================================================ */
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 32px 80px;
+    background:
+      radial-gradient(80% 60% at 50% -10%, #1a1d27 0%, #0a0b0e 60%),
+      #07080a;
+    font-family: 'Segoe UI', system-ui, sans-serif; color: #e9ecf3;
+  }
+  .page-head { max-width: 1200px; margin: 0 auto 36px; }
+  .page-head h1 { margin: 0 0 6px; font-size: 26px; font-weight: 800; letter-spacing: -.5px; }
+  .page-head p { margin: 0; color: #9099a8; font-size: 14px; }
+
+  .grid {
+    max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 26px;
+  }
+  .tile {
+    background: #0d0f14; border: 1px solid #1b1e27; border-radius: 18px;
+    padding: 22px; display: flex; flex-direction: column; gap: 16px;
+  }
+  .tile-head { display: flex; align-items: baseline; gap: 10px; }
+  .tile-head .name { font-size: 16px; font-weight: 700; }
+  .tile-head .tag { font-size: 11px; color: #8a92a2; text-transform: uppercase; letter-spacing: 1px; }
+  .swatches { display: flex; gap: 6px; }
+  .swatches i { width: 22px; height: 14px; border-radius: 4px; border: 1px solid rgba(255,255,255,.08); }
+
+  /* Le "stage" simule le fond du jeu derrière l'overlay (gris neutre). */
+  .stage {
+    border-radius: 14px; padding: 26px; display: flex; justify-content: center;
+    background:
+      repeating-linear-gradient(45deg, #2b2f37 0 14px, #262a31 14px 28px);
+  }
+
+  /* ---------- Carte overlay (structure commune, couleurs via tokens) ---------- */
+  .card {
+    --r: 14px;
+    width: 248px; position: relative; color: var(--txt);
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--r); padding: 16px 18px 14px;
+    box-shadow: 0 16px 44px rgba(0,0,0,.5);
+    font-variant-numeric: tabular-nums;
+  }
+  .card::before {
+    content: ''; position: absolute; inset: 0 0 auto 0; height: 64px; border-radius: var(--r) var(--r) 0 0;
+    background: radial-gradient(80% 100% at 50% 0, var(--halo), transparent 70%); pointer-events: none;
+  }
+  .top { display: flex; align-items: center; gap: 10px; position: relative; }
+  .shield {
+    width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-size: 15px;
+    background: var(--shieldBg); border: 1px solid var(--shieldLine); color: var(--shieldFg);
+    box-shadow: 0 0 12px var(--shieldGlow);
+  }
+  .tier { font-size: 12px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; }
+  .sub { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+  .pl { margin-left: auto; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+
+  .mmrrow { display: flex; align-items: baseline; gap: 10px; margin: 12px 0 2px; position: relative; }
+  .mmr { font-size: 44px; font-weight: 300; line-height: 1; letter-spacing: -1.5px;
+    text-shadow: 0 0 18px var(--mmrGlow); }
+  .delta { font-size: 13px; font-weight: 700; font-style: italic; color: var(--good); }
+
+  .promo { margin: 12px 0 2px; }
+  .plbl { display: flex; justify-content: space-between; font-size: 9px; letter-spacing: .8px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+  .plbl b { color: var(--txt); font-weight: 600; }
+  .track { height: 7px; border-radius: 99px; background: var(--trackBg); overflow: hidden; }
+  .track i { display: block; height: 100%; width: 73%; border-radius: 99px;
+    background: linear-gradient(90deg, var(--aA), var(--aB)); box-shadow: 0 0 10px var(--barGlow); }
+
+  .mom { display: flex; gap: 4px; margin: 14px 0 4px; }
+  .mom span { flex: 1; height: 16px; border-radius: 3px; background: var(--trackBg); }
+  .mom .w { background: var(--good); }
+  .mom .l { background: var(--loss); }
+  .mom .h { background: linear-gradient(180deg, var(--hot2), var(--hot)); box-shadow: 0 0 9px var(--hotGlow); }
+
+  .boost { margin: 12px 0 4px; }
+  .blbl { font-size: 8px; letter-spacing: 2px; text-transform: uppercase; color: var(--hot); margin-bottom: 5px; font-weight: 700; }
+  .btrack { height: 6px; border-radius: 99px; background: var(--trackBg); overflow: hidden; }
+  .btrack i { display: block; height: 100%; width: 82%; border-radius: 99px;
+    background: linear-gradient(90deg, var(--hot), var(--hot2)); box-shadow: 0 0 12px var(--hotGlow); }
+
+  .foot { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding-top: 12px;
+    border-top: 1px solid var(--line); font-size: 12px; }
+  .foot .w5 { color: var(--good); font-weight: 700; }
+  .foot .l5 { color: var(--loss); font-weight: 700; }
+  .foot .sep { color: var(--dim); }
+  .foot .time { color: var(--muted); }
+  .pill { margin-left: auto; font-size: 11px; font-weight: 800; font-style: italic; padding: 3px 10px;
+    border-radius: 99px; color: var(--pillFg); background: var(--pillBg); box-shadow: 0 0 12px var(--hotGlow); }
+
+  /* ============================ THÈMES ============================ */
+
+  /* 1 — Octane : esports, ambre chaud sur charbon. */
+  .t-octane {
+    --bg:#0a0b0e; --card:#0e0f13; --line:#23262f; --txt:#f5f6f8; --muted:#8b93a3; --dim:#5b6270;
+    --aA:#ff8a3d; --aB:#ffc24d; --good:#46d39a; --loss:#ff5d6c; --hot:#ff9e4d; --hot2:#ffd36b;
+    --halo:rgba(255,158,77,.18); --mmrGlow:rgba(255,158,77,.3); --barGlow:rgba(255,170,70,.6);
+    --hotGlow:rgba(255,158,77,.75); --trackBg:#181a20;
+    --shieldBg:linear-gradient(160deg,#2a1f12,#140d06); --shieldLine:#503418; --shieldFg:#ffc88a; --shieldGlow:rgba(255,158,77,.3);
+    --pillFg:#1a1205; --pillBg:linear-gradient(100deg,#ff9e4d,#ffd36b);
+  }
+  /* 2 — Cryo : esports froid, cyan glacé. */
+  .t-cryo {
+    --bg:#070b0f; --card:#0b1016; --line:#1a2632; --txt:#eaf6ff; --muted:#7d93a6; --dim:#516274;
+    --aA:#39c5ff; --aB:#7af0e0; --good:#37e0c0; --loss:#ff6b8a; --hot:#39c5ff; --hot2:#9ff5ff;
+    --halo:rgba(57,197,255,.2); --mmrGlow:rgba(57,197,255,.32); --barGlow:rgba(57,197,255,.65);
+    --hotGlow:rgba(57,197,255,.7); --trackBg:#10171f;
+    --shieldBg:linear-gradient(160deg,#102633,#08141d); --shieldLine:#1f4a5e; --shieldFg:#9fe6ff; --shieldGlow:rgba(57,197,255,.3);
+    --pillFg:#05161c; --pillBg:linear-gradient(100deg,#39c5ff,#9ff5ff);
+  }
+  /* 3 — Synthwave : néon magenta + cyan, fond violacé. */
+  .t-synth {
+    --bg:#0c0716; --card:#130a22; --line:#2c1d44; --txt:#fbeaff; --muted:#a78bc6; --dim:#6e5690;
+    --aA:#ff3db4; --aB:#8a5bff; --good:#3df0c0; --loss:#ff476b; --hot:#ff3db4; --hot2:#ffd24d;
+    --halo:rgba(255,61,180,.22); --mmrGlow:rgba(180,90,255,.4); --barGlow:rgba(255,61,180,.7);
+    --hotGlow:rgba(255,61,180,.8); --trackBg:#1c1130;
+    --shieldBg:linear-gradient(160deg,#2a1340,#160a26); --shieldLine:#4a2670; --shieldFg:#e9b8ff; --shieldGlow:rgba(180,90,255,.4);
+    --pillFg:#1a0613; --pillBg:linear-gradient(100deg,#ff3db4,#8a5bff);
+  }
+  /* 4 — Mono : minimal, quasi-niveaux de gris + accent blanc. */
+  .t-mono {
+    --bg:#0c0d0f; --card:#121316; --line:#26282d; --txt:#f4f5f6; --muted:#8b8f96; --dim:#5a5e66;
+    --aA:#e8eaee; --aB:#9aa0aa; --good:#cfd3da; --loss:#9aa0aa; --hot:#ffffff; --hot2:#c8ccd2;
+    --halo:rgba(255,255,255,.08); --mmrGlow:rgba(255,255,255,.18); --barGlow:rgba(255,255,255,.25);
+    --hotGlow:rgba(255,255,255,.3); --trackBg:#1c1e22;
+    --shieldBg:linear-gradient(160deg,#26282d,#15161a); --shieldLine:#3a3d44; --shieldFg:#f0f1f3; --shieldGlow:rgba(255,255,255,.15);
+    --pillFg:#0c0d0f; --pillBg:linear-gradient(100deg,#f4f5f6,#c8ccd2);
+  }
+  /* 5 — Acid : minimal sombre + un seul vert acide. */
+  .t-acid {
+    --bg:#0a0c0a; --card:#0e110e; --line:#1f261f; --txt:#eef5ec; --muted:#86968a; --dim:#566353;
+    --aA:#b6ff3d; --aB:#5fd17a; --good:#b6ff3d; --loss:#ff6b6b; --hot:#b6ff3d; --hot2:#e6ff9c;
+    --halo:rgba(182,255,61,.16); --mmrGlow:rgba(182,255,61,.28); --barGlow:rgba(182,255,61,.6);
+    --hotGlow:rgba(182,255,61,.7); --trackBg:#161b16;
+    --shieldBg:linear-gradient(160deg,#1c2613,#0e1408); --shieldLine:#34471d; --shieldFg:#d2ff8a; --shieldGlow:rgba(182,255,61,.3);
+    --pillFg:#0c1505; --pillBg:linear-gradient(100deg,#b6ff3d,#e6ff9c);
+  }
+  /* 6 — Crimson : esports agressif, rouge sang sur noir. */
+  .t-crimson {
+    --bg:#0b0708; --card:#120a0c; --line:#2c1a1e; --txt:#fdeef0; --muted:#b08a90; --dim:#7a565c;
+    --aA:#ff3b4e; --aB:#ff8a3d; --good:#46d39a; --loss:#ff3b4e; --hot:#ff3b4e; --hot2:#ff9e4d;
+    --halo:rgba(255,59,78,.2); --mmrGlow:rgba(255,59,78,.34); --barGlow:rgba(255,59,78,.7);
+    --hotGlow:rgba(255,59,78,.75); --trackBg:#1d1115;
+    --shieldBg:linear-gradient(160deg,#341216,#1c090c); --shieldLine:#5e2027; --shieldFg:#ffb0b8; --shieldGlow:rgba(255,59,78,.35);
+    --pillFg:#1a0608; --pillBg:linear-gradient(100deg,#ff3b4e,#ff9e4d);
+  }
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>Galerie de thèmes — overlay RL</h1>
+    <p>6 propositions sur le panneau « Premium ». Choisis tes préférés (par nom) → je les câble dans le HUD / Hub.</p>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+<script>
+  const THEMES = [
+    { cls: 't-octane',  name: 'Octane',    tag: 'esports · ambre',     sw: ['#ff8a3d','#ffc24d','#0e0f13','#46d39a','#ff5d6c'] },
+    { cls: 't-cryo',    name: 'Cryo',      tag: 'esports · cyan',      sw: ['#39c5ff','#7af0e0','#0b1016','#37e0c0','#ff6b8a'] },
+    { cls: 't-synth',   name: 'Synthwave', tag: 'néon · magenta',      sw: ['#ff3db4','#8a5bff','#130a22','#3df0c0','#ffd24d'] },
+    { cls: 't-mono',    name: 'Mono',      tag: 'minimal · gris',      sw: ['#e8eaee','#9aa0aa','#121316','#cfd3da','#ffffff'] },
+    { cls: 't-acid',    name: 'Acid',      tag: 'minimal · vert',      sw: ['#b6ff3d','#5fd17a','#0e110e','#b6ff3d','#ff6b6b'] },
+    { cls: 't-crimson', name: 'Crimson',   tag: 'esports · rouge',     sw: ['#ff3b4e','#ff8a3d','#120a0c','#46d39a','#ff3b4e'] },
+  ];
+
+  const cardHTML = `
+    <div class="card">
+      <div class="top">
+        <div class="shield">◆</div>
+        <div><div class="tier">Diamond II</div><div class="sub">Standard 3v3</div></div>
+        <div class="pl">2v2</div>
+      </div>
+      <div class="mmrrow"><span class="mmr">1024</span><span class="delta">▲ +42</span></div>
+      <div class="promo">
+        <div class="plbl"><span>Vers Diamond III</span><b>2 victoires</b></div>
+        <div class="track"><i></i></div>
+      </div>
+      <div class="mom">
+        <span class="w"></span><span class="w"></span><span class="l"></span><span class="w"></span><span class="l"></span>
+        <span class="w"></span><span class="w"></span><span class="h"></span><span class="h"></span><span class="h"></span>
+      </div>
+      <div class="boost">
+        <div class="blbl">⚡ Boost · élan</div>
+        <div class="btrack"><i></i></div>
+      </div>
+      <div class="foot">
+        <span class="w5">6V</span><span class="sep">·</span><span class="l5">2D</span>
+        <span class="sep">·</span><span class="time">1h12</span>
+        <span class="pill">🔥 STREAK 4</span>
+      </div>
+    </div>`;
+
+  const grid = document.getElementById('grid');
+  for (const t of THEMES) {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.innerHTML = `
+      <div class="tile-head">
+        <span class="name">${t.name}</span><span class="tag">${t.tag}</span>
+      </div>
+      <div class="swatches">${t.sw.map(c => `<i style="background:${c}"></i>`).join('')}</div>
+      <div class="stage ${t.cls}">${cardHTML}</div>`;
+    grid.appendChild(tile);
+  }
+</script>
+</body>
+</html>

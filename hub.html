@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
+<link rel="stylesheet" href="themes.css" />
 <link rel="stylesheet" href="theme-v2.css" />
 <style>
   /* Layout propre au Hub (le skin/tokens viennent de theme-v2.css). */
@@ -9,9 +10,9 @@
     font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
   .hub { display: flex; flex-direction: column; gap: 14px; height: 100%;
     box-sizing: border-box; padding: 22px 26px;
-    background: radial-gradient(120% 90% at 80% -10%, #14161e, #070809 70%); }
+    background: radial-gradient(120% 90% at 80% -10%, var(--card), var(--bg) 70%); }
   .label { color: var(--muted); text-transform: uppercase; letter-spacing: .14em; font-size: 11px; }
-  .card { position: relative; background: linear-gradient(180deg, #101218, #0b0c10);
+  .card { position: relative; background: var(--card);
     border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
 
   /* Bande héros : domine visuellement + embrasement Octane discret en bas. */
@@ -156,6 +157,11 @@
 
   function paint(vm) {
     if (!vm) return;
+    // Thème (Ctrl+Alt+T) poussé via _theme : 0 = :root, 1-5 = body.tN.
+    if (vm._theme != null) {
+      for (const c of [...document.body.classList]) if (/^t\d$/.test(c)) document.body.classList.remove(c);
+      if (vm._theme) document.body.classList.add('t' + vm._theme);
+    }
     document.body.classList.toggle('hot', !!vm.hot);
     document.body.classList.toggle('tilted', !!(vm.heuristics && vm.heuristics.tilt && vm.heuristics.tilt.tilted));
 

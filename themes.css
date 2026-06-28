@@ -1,0 +1,56 @@
+/* ============================================================
+   RL Overlay — 6 thèmes partagés (HUD f0-f4, Premium f5, Hub).
+   Source de vérité unique des tokens couleur. Inclus par index.html
+   ET hub.html. Sélection via Ctrl+Alt+T : thème 0 = :root (pas de
+   classe), thèmes 1-5 = body.t1..t5 (cf. index.html / hub.html).
+
+   Chaque thème fournit l'UNION des tokens consommés :
+   - f5/Hub  : --bg --card --line --txt --muted --dim --aA --aB
+               --good --loss --hot --hot2
+   - f0-f4   : --accent --accent2 --title --bg1 --bg2
+   (--accent=--aA, --accent2=--aB, --title=--txt ; --bg1/--bg2 =
+   fonds translucides des cartes f0-f4 posées sur le jeu.)
+   ============================================================ */
+
+/* 0 — Octane (esports · ambre) — défaut */
+:root {
+  --bg:#0a0b0e; --card:#0e0f13; --line:#23262f; --txt:#f5f6f8; --muted:#8b93a3; --dim:#5b6270;
+  --aA:#ff8a3d; --aB:#ffc24d; --good:#46d39a; --loss:#ff5d6c; --hot:#ff9e4d; --hot2:#ffd36b;
+  --accent:#ff8a3d; --accent2:#ffc24d; --title:#f5f6f8;
+  --bg1:rgba(26,16,8,0.62); --bg2:rgba(16,10,5,0.66);
+}
+/* 1 — Cryo (esports · cyan glacé) */
+body.t1 {
+  --bg:#070b0f; --card:#0b1016; --line:#1a2632; --txt:#eaf6ff; --muted:#7d93a6; --dim:#516274;
+  --aA:#39c5ff; --aB:#7af0e0; --good:#37e0c0; --loss:#ff6b8a; --hot:#39c5ff; --hot2:#9ff5ff;
+  --accent:#39c5ff; --accent2:#7af0e0; --title:#eaf6ff;
+  --bg1:rgba(8,18,26,0.62); --bg2:rgba(5,12,18,0.66);
+}
+/* 2 — Synthwave (néon · magenta + violet) */
+body.t2 {
+  --bg:#0c0716; --card:#130a22; --line:#2c1d44; --txt:#fbeaff; --muted:#a78bc6; --dim:#6e5690;
+  --aA:#ff3db4; --aB:#8a5bff; --good:#3df0c0; --loss:#ff476b; --hot:#ff3db4; --hot2:#ffd24d;
+  --accent:#ff3db4; --accent2:#8a5bff; --title:#fbeaff;
+  --bg1:rgba(22,10,38,0.64); --bg2:rgba(14,7,26,0.68);
+}
+/* 3 — Mono (minimal · gris + blanc) */
+body.t3 {
+  --bg:#0c0d0f; --card:#121316; --line:#26282d; --txt:#f4f5f6; --muted:#8b8f96; --dim:#5a5e66;
+  --aA:#e8eaee; --aB:#9aa0aa; --good:#cfd3da; --loss:#ff6b74; --hot:#ffffff; --hot2:#c8ccd2;
+  --accent:#e8eaee; --accent2:#9aa0aa; --title:#f4f5f6;
+  --bg1:rgba(20,22,26,0.64); --bg2:rgba(12,13,16,0.68);
+}
+/* 4 — Acid (minimal · vert acide) */
+body.t4 {
+  --bg:#0a0c0a; --card:#0e110e; --line:#1f261f; --txt:#eef5ec; --muted:#86968a; --dim:#566353;
+  --aA:#b6ff3d; --aB:#5fd17a; --good:#b6ff3d; --loss:#ff6b6b; --hot:#b6ff3d; --hot2:#e6ff9c;
+  --accent:#b6ff3d; --accent2:#5fd17a; --title:#eef5ec;
+  --bg1:rgba(16,24,14,0.62); --bg2:rgba(8,14,8,0.66);
+}
+/* 5 — Crimson (esports · rouge sang) */
+body.t5 {
+  --bg:#0b0708; --card:#120a0c; --line:#2c1a1e; --txt:#fdeef0; --muted:#b08a90; --dim:#7a565c;
+  --aA:#ff3b4e; --aB:#ff8a3d; --good:#46d39a; --loss:#ff3b4e; --hot:#ff3b4e; --hot2:#ff9e4d;
+  --accent:#ff3b4e; --accent2:#ff8a3d; --title:#fdeef0;
+  --bg1:rgba(28,12,15,0.62); --bg2:rgba(18,8,10,0.66);
+}

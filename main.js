@@ -190,12 +190,12 @@ function createWindow() {
   // Applique le thème mémorisé dès que la page est prête.
   win.webContents.on('did-finish-load', () => {
     const o = loadConfig().overlay;
-    sendUpdate({ theme: o.theme || 0, layout: o.layout || 0 });
+    sendUpdate({ theme: (o.theme || 0) % THEME_COUNT, layout: o.layout || 0 });
   });
   win.loadFile('index.html');
 }
 
-const THEME_COUNT = 8;
+const THEME_COUNT = 6;
 const LAYOUT_COUNT = 6; // f0-f4 + Premium f5 (V2)
 
 // Passe au thème suivant, persiste, et notifie le renderer (avec toast).
@@ -205,6 +205,7 @@ function cycleTheme() {
   cfg.overlay.theme = next;
   saveConfig(cfg);
   sendUpdate({ theme: next, themeToast: true });
+  pushHub(); // recolore le Hub en direct s'il est ouvert
 }
 
 // Passe à la forme (layout) suivante, persiste, et notifie le renderer.
@@ -365,7 +366,8 @@ function sendUpdate(data) {
 // --- Hub plein écran (lazy, lecture seule) ---
 function pushHub() {
   if (hubWin && !hubWin.isDestroyed() && lastVm) {
-    hubWin.webContents.send('hub-update', lastVm);
+    const theme = (loadConfig().overlay.theme || 0) % THEME_COUNT;
+    hubWin.webContents.send('hub-update', { ...lastVm, _theme: theme });
   }
 }
 
