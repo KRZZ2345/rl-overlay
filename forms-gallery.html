@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>RL Overlay — Galerie de formes</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:40px 32px 80px; font-family:'Segoe UI',system-ui,sans-serif; color:#e9ecf3;
+    background: radial-gradient(80% 60% at 50% -10%, #1a1d27 0%, #0a0b0e 60%), #07080a; }
+  .page-head { max-width:1200px; margin:0 auto 36px; }
+  .page-head h1 { margin:0 0 6px; font-size:26px; font-weight:800; letter-spacing:-.5px; }
+  .page-head p { margin:0; color:#9099a8; font-size:14px; }
+  .grid { max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:26px; }
+  .tile { background:#0d0f14; border:1px solid #1b1e27; border-radius:18px; padding:22px; display:flex; flex-direction:column; gap:14px; }
+  .tile-head { display:flex; align-items:baseline; gap:10px; }
+  .tile-head .name { font-size:16px; font-weight:700; }
+  .tile-head .tag { font-size:11px; color:#8a92a2; text-transform:uppercase; letter-spacing:1px; }
+  .stage { border-radius:14px; padding:30px; display:flex; align-items:center; justify-content:center; min-height:150px;
+    background: repeating-linear-gradient(45deg,#2b2f37 0 14px,#262a31 14px 28px); }
+
+  /* ---- tokens partagés (mêmes valeurs que themes.css), scopés par tuile ---- */
+  .t-octane  { --bg:#0a0b0e;--card:#0e0f13;--line:#23262f;--txt:#f5f6f8;--muted:#8b93a3;--dim:#5b6270;--aA:#ff8a3d;--aB:#ffc24d;--good:#46d39a;--loss:#ff5d6c;--hot:#ff9e4d;--hot2:#ffd36b;--trk:#181a20;--glow:rgba(255,158,77,.6); }
+  .t-cryo    { --bg:#070b0f;--card:#0b1016;--line:#1a2632;--txt:#eaf6ff;--muted:#7d93a6;--dim:#516274;--aA:#39c5ff;--aB:#7af0e0;--good:#37e0c0;--loss:#ff6b8a;--hot:#39c5ff;--hot2:#9ff5ff;--trk:#10171f;--glow:rgba(57,197,255,.6); }
+  .t-synth   { --bg:#0c0716;--card:#130a22;--line:#2c1d44;--txt:#fbeaff;--muted:#a78bc6;--dim:#6e5690;--aA:#ff3db4;--aB:#8a5bff;--good:#3df0c0;--loss:#ff476b;--hot:#ff3db4;--hot2:#ffd24d;--trk:#1c1130;--glow:rgba(255,61,180,.6); }
+  .t-mono    { --bg:#0c0d0f;--card:#121316;--line:#26282d;--txt:#f4f5f6;--muted:#8b8f96;--dim:#5a5e66;--aA:#e8eaee;--aB:#9aa0aa;--good:#cfd3da;--loss:#ff6b74;--hot:#fff;--hot2:#c8ccd2;--trk:#1c1e22;--glow:rgba(255,255,255,.25); }
+  .t-acid    { --bg:#0a0c0a;--card:#0e110e;--line:#1f261f;--txt:#eef5ec;--muted:#86968a;--dim:#566353;--aA:#b6ff3d;--aB:#5fd17a;--good:#b6ff3d;--loss:#ff6b6b;--hot:#b6ff3d;--hot2:#e6ff9c;--trk:#161b16;--glow:rgba(182,255,61,.55); }
+  .t-crimson { --bg:#0b0708;--card:#120a0c;--line:#2c1a1e;--txt:#fdeef0;--muted:#b08a90;--dim:#7a565c;--aA:#ff3b4e;--aB:#ff8a3d;--good:#46d39a;--loss:#ff3b4e;--hot:#ff3b4e;--hot2:#ff9e4d;--trk:#1d1115;--glow:rgba(255,59,78,.6); }
+
+  /* base carte commune aux formes */
+  .f { color:var(--txt); font-variant-numeric:tabular-nums; }
+  .f .w { color:var(--good); font-weight:700; } .f .l { color:var(--loss); font-weight:700; }
+  .f .delta { color:var(--good); font-style:italic; font-weight:700; }
+  .f .shield { display:grid; place-items:center; border-radius:7px; background:var(--card);
+    border:1px solid var(--line); color:var(--aA); box-shadow:0 0 10px var(--glow); }
+
+  /* 1 — STRIP : barre une ligne ultra-fine */
+  .f-strip { display:flex; align-items:center; gap:12px; padding:8px 14px; border-radius:99px;
+    background:var(--card); border:1px solid var(--line); box-shadow:0 8px 24px rgba(0,0,0,.45); font-size:15px; }
+  .f-strip .shield { width:24px; height:24px; font-size:12px; }
+  .f-strip .tier { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); }
+  .f-strip .mmr { font-size:20px; font-weight:300; }
+  .f-strip .sep { color:var(--dim); }
+  .f-strip .pill { font-weight:800; font-style:italic; color:var(--bg); background:linear-gradient(100deg,var(--hot),var(--hot2));
+    padding:2px 9px; border-radius:99px; font-size:12px; box-shadow:0 0 10px var(--glow); }
+
+  /* 2 — RAIL : colonne verticale étroite */
+  .f-rail { display:flex; flex-direction:column; align-items:center; gap:8px; width:64px; padding:12px 8px;
+    border-radius:18px; background:var(--card); border:1px solid var(--line); box-shadow:0 10px 28px rgba(0,0,0,.5); }
+  .f-rail .shield { width:30px; height:30px; font-size:14px; }
+  .f-rail .mmr { font-size:22px; font-weight:300; line-height:1; }
+  .f-rail .delta { font-size:12px; }
+  .f-rail .wl { font-size:13px; } .f-rail .streak { font-size:13px; font-weight:800; color:var(--hot); }
+  .f-rail .div { width:60%; height:1px; background:var(--line); }
+
+  /* 3 — GAUGE : anneau MMR + arc promo */
+  .f-gauge { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .f-gauge .ring { width:104px; height:104px; border-radius:50%; display:grid; place-items:center;
+    background: conic-gradient(var(--aA) 73%, var(--trk) 0); box-shadow:0 0 16px var(--glow); }
+  .f-gauge .hole { width:84px; height:84px; border-radius:50%; background:var(--card); display:grid; place-items:center;
+    border:1px solid var(--line); }
+  .f-gauge .mmr { font-size:26px; font-weight:300; line-height:1; }
+  .f-gauge .lbl { font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-top:2px; }
+  .f-gauge .foot { font-size:12px; color:var(--muted); }
+
+  /* 4 — TWIN : deux pills */
+  .f-twin { display:flex; flex-direction:column; gap:8px; }
+  .f-twin .p { padding:8px 14px; border-radius:14px; background:var(--card); border:1px solid var(--line);
+    box-shadow:0 8px 22px rgba(0,0,0,.45); font-size:15px; display:flex; align-items:center; gap:8px; }
+  .f-twin .p .mmr { font-size:24px; font-weight:300; }
+  .f-twin .p .streak { color:var(--hot); font-weight:800; }
+
+  /* 5 — BADGE : compact rang + MMR */
+  .f-badge { display:flex; align-items:center; gap:11px; padding:11px 15px; border-radius:14px;
+    background:var(--card); border:1px solid var(--line); box-shadow:0 10px 26px rgba(0,0,0,.5); }
+  .f-badge .shield { width:38px; height:38px; font-size:18px; }
+  .f-badge .tier { font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); }
+  .f-badge .mmr { font-size:30px; font-weight:300; line-height:1.05; }
+
+  /* 6 — RIBBON : bandeau rang | MMR | momentum */
+  .f-ribbon { display:flex; align-items:center; gap:16px; padding:12px 18px; border-radius:14px;
+    background:var(--card); border:1px solid var(--line); box-shadow:0 12px 30px rgba(0,0,0,.5); }
+  .f-ribbon .left { display:flex; align-items:center; gap:9px; }
+  .f-ribbon .shield { width:30px; height:30px; font-size:14px; }
+  .f-ribbon .tier { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); }
+  .f-ribbon .mmr { font-size:34px; font-weight:300; line-height:1; }
+  .f-ribbon .delta { font-size:13px; margin-left:6px; }
+  .f-ribbon .mom { display:flex; gap:3px; }
+  .f-ribbon .mom i { width:7px; height:18px; border-radius:2px; background:var(--trk); }
+  .f-ribbon .mom i.w { background:var(--good); } .f-ribbon .mom i.l { background:var(--loss); }
+  .f-ribbon .mom i.h { background:linear-gradient(180deg,var(--hot2),var(--hot)); box-shadow:0 0 8px var(--glow); }
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>Galerie de formes — overlay RL</h1>
+    <p>6 nouvelles formes (chacune dans un thème différent — les 6 thèmes s'appliquent à toutes). Choisis lesquelles ajouter au cycle Ctrl+Alt+F.</p>
+  </div>
+  <div class="grid" id="grid"></div>
+
+<script>
+  const FORMS = [
+    { theme:'t-octane', name:'Strip', tag:'barre 1 ligne', html:`
+      <div class="f f-strip">
+        <span class="shield">◆</span><span class="tier">DIA II</span>
+        <span class="mmr">1024</span><span class="delta">▲+42</span>
+        <span class="sep">·</span><span><b class="w">6</b>-<b class="l">2</b></span>
+        <span class="pill">🔥4</span>
+      </div>` },
+    { theme:'t-cryo', name:'Rail', tag:'colonne verticale', html:`
+      <div class="f f-rail">
+        <span class="shield">◆</span>
+        <span class="mmr">1024</span><span class="delta">▲42</span>
+        <span class="div"></span>
+        <span class="wl"><b class="w">6</b> <b class="l">2</b></span>
+        <span class="streak">🔥4</span>
+      </div>` },
+    { theme:'t-synth', name:'Gauge', tag:'anneau MMR', html:`
+      <div class="f f-gauge">
+        <div class="ring"><div class="hole"><div style="text-align:center"><div class="mmr">1024</div><div class="lbl">DIA II</div></div></div></div>
+        <div class="foot"><b class="w">6V</b> · <b class="l">2D</b> · 🔥4</div>
+      </div>` },
+    { theme:'t-acid', name:'Twin', tag:'deux pills', html:`
+      <div class="f f-twin">
+        <div class="p"><span class="mmr">1024</span><span class="delta">▲+42</span></div>
+        <div class="p"><b class="w">6W</b> <b class="l">2D</b> · <span class="streak">🔥4</span></div>
+      </div>` },
+    { theme:'t-mono', name:'Badge', tag:'compact', html:`
+      <div class="f f-badge">
+        <span class="shield">◆</span>
+        <div><div class="tier">Diamond II</div><div class="mmr">1024 <span class="delta">▲+42</span></div></div>
+      </div>` },
+    { theme:'t-crimson', name:'Ribbon', tag:'bandeau', html:`
+      <div class="f f-ribbon">
+        <div class="left"><span class="shield">◆</span><span class="tier">DIA II</span></div>
+        <div><span class="mmr">1024</span><span class="delta">▲+42</span></div>
+        <div class="mom"><i class="w"></i><i class="w"></i><i class="l"></i><i class="w"></i><i class="w"></i><i class="h"></i></div>
+      </div>` },
+  ];
+  const grid = document.getElementById('grid');
+  for (const f of FORMS) {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.innerHTML = `<div class="tile-head"><span class="name">${f.name}</span><span class="tag">${f.tag}</span></div>
+      <div class="stage ${f.theme}">${f.html}</div>`;
+    grid.appendChild(tile);
+  }
+</script>
+</body>
+</html>

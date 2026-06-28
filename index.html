@@ -157,6 +157,25 @@
   .f4 .bot .wl { font-size: 15px; }
   .f4 .lft .delta, .f4 .rgt .delta { font-size: 13px; }
 
+  /* ---- F4 — Badge : compact (shield rang + tier + MMR) ---- */
+  .fbadge .card {
+    display: flex; align-items: center; gap: 11px; width: max-content;
+    padding: 11px 15px; border-radius: 14px;
+    background: var(--card); border: 1px solid var(--line);
+    box-shadow: 0 10px 26px rgba(0,0,0,0.5);
+  }
+  .fbadge .bshield { width: 38px; height: 38px; object-fit: contain;
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--aA) 45%, transparent)); }
+  .fbadge .bcol { display: flex; flex-direction: column; }
+  .fbadge .btier { font-size: 11px; font-weight: 700; letter-spacing: 1.4px;
+    text-transform: uppercase; color: var(--muted); }
+  .fbadge .bmmrrow { display: flex; align-items: baseline; gap: 8px; }
+  .fbadge .bmmr { font-size: 30px; font-weight: 300; line-height: 1.05; color: var(--txt); }
+  .fbadge .bdelta { font-size: 13px; font-weight: 700; font-style: italic; }
+  .fbadge .bdelta.up { color: var(--good); }
+  .fbadge .bdelta.down { color: var(--loss); }
+  .fbadge .bdelta.flat { color: var(--dim); }
+
   /* ============================================================
      ANIMATIONS — couche FX au-dessus des formes (#fx)
      ============================================================ */
@@ -350,15 +369,15 @@
         </div>
         <div class="np" data-f="np"></div>
       </div></div>`,
-    // F4 — Boost (anneau)
-    () => `<div class="form f4">
-        <div class="ring"></div>
-        <div class="chip top"><span class="mmr" data-f="mmr">—</span><span class="rank" data-f="rank">—</span></div>
-        <div class="chip bot"><span class="wl"><b class="w" data-f="wins">0</b><span class="lbl">W</span> <b class="l" data-f="losses">0</b><span class="lbl">L</span></span></div>
-        <div class="chip lft"><span class="streak streak-zero" data-f="streak">—</span></div>
-        <div class="chip rgt"><span class="delta flat" data-f="delta">—</span></div>
+    // F4 — Badge (compact : shield rang + MMR)
+    () => `<div class="form fbadge"><div class="card">
+        <img class="bshield" data-f="rankIco" style="display:none" alt="">
+        <div class="bcol">
+          <span class="btier" data-f="rank">—</span>
+          <span class="bmmrrow"><span class="bmmr" data-f="mmr">—</span><span class="bdelta delta flat" data-f="delta">—</span></span>
+        </div>
         <div class="np" data-f="np"></div>
-      </div>`
+      </div></div>`
     ,
     // F5 — Premium : Rank Shield + MMR géant + promo + Momentum-10 + élan + pied
     () => `<div class="form f5">
@@ -383,7 +402,7 @@
   ];
 
   const THEME_NAMES  = ['Octane', 'Cryo', 'Synthwave', 'Mono', 'Acid', 'Crimson'];
-  const LAYOUT_NAMES = ['Minimal', 'Compact', 'Compétitif', 'Dashboard', 'Boost', 'Premium'];
+  const LAYOUT_NAMES = ['Minimal', 'Compact', 'Compétitif', 'Dashboard', 'Badge', 'Premium'];
   let curTheme = 0, curLayout = 0;
 
   function applyThemeClass() {
