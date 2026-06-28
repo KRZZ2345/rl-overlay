@@ -7,8 +7,13 @@ $root = Resolve-Path "$PSScriptRoot\..\..\.."  # racine projet rl-overlay
 Set-Location $root
 
 # 1. Garde-fous
-if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { throw "gh CLI absent. winget install GitHub.cli" }
-gh auth status *> $null; if ($LASTEXITCODE -ne 0) { throw "gh non authentifie. gh auth login" }
+$gh = (Get-Command gh -ErrorAction SilentlyContinue).Source
+if (-not $gh) {
+  $gh = @("$env:ProgramFiles\GitHub CLI\gh.exe", "${env:ProgramFiles(x86)}\GitHub CLI\gh.exe",
+          "$env:LOCALAPPDATA\Microsoft\WinGet\Links\gh.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+}
+if (-not $gh) { throw "gh CLI absent. winget install GitHub.cli" }
+& $gh auth status *> $null; if ($LASTEXITCODE -ne 0) { throw "gh non authentifie. gh auth login" }
 if (git status --porcelain) { throw "Arbre git non propre. Commit/stash d'abord." }
 if (-not (git remote get-url origin 2>$null)) { throw "Pas de remote 'origin'. Voir SKILL.md (setup)." }
 
@@ -41,5 +46,5 @@ git tag "v$new"
 git push --follow-tags
 
 # 5. GitHub Release (notes auto-generees)
-gh release create "v$new" $zip --title "v$new" --generate-notes
+& $gh release create "v$new" $zip --title "v$new" --generate-notes
 Write-Host "Release v$new publiee."
