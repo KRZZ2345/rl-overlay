@@ -11,9 +11,10 @@
 }
 .f5 .card {
   position: relative; padding: 13px 14px 12px;
-  background: var(--card);
+  background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
   border: 1px solid var(--line);
   border-radius: 14px;
+  backdrop-filter: blur(4px);
   box-shadow: 0 10px 30px rgba(0,0,0,0.55);
 }
 /* Halo froid discret en tête de carte. */

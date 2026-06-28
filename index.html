@@ -161,7 +161,8 @@
   .fbadge .card {
     display: flex; align-items: center; gap: 9px; width: max-content;
     padding: 8px 12px; border-radius: 12px;
-    background: var(--card); border: 1px solid var(--line);
+    background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
+    border: 1px solid var(--line); backdrop-filter: blur(4px);
     box-shadow: 0 10px 26px rgba(0,0,0,0.5);
   }
   .fbadge .bshield { width: 30px; height: 30px; object-fit: contain;
