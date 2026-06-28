@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>RL Overlay — Galerie de formes (lot 2)</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:40px 32px 80px; font-family:'Segoe UI',system-ui,sans-serif; color:#e9ecf3;
+    background: radial-gradient(80% 60% at 50% -10%, #1a1d27 0%, #0a0b0e 60%), #07080a; }
+  .page-head { max-width:1200px; margin:0 auto 36px; }
+  .page-head h1 { margin:0 0 6px; font-size:26px; font-weight:800; letter-spacing:-.5px; }
+  .page-head p { margin:0; color:#9099a8; font-size:14px; }
+  .grid { max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:26px; }
+  .tile { background:#0d0f14; border:1px solid #1b1e27; border-radius:18px; padding:22px; display:flex; flex-direction:column; gap:14px; }
+  .tile-head { display:flex; align-items:baseline; gap:10px; }
+  .tile-head .name { font-size:16px; font-weight:700; }
+  .tile-head .tag { font-size:11px; color:#8a92a2; text-transform:uppercase; letter-spacing:1px; }
+  .stage { border-radius:14px; padding:30px; display:flex; align-items:center; justify-content:center; min-height:160px;
+    background: repeating-linear-gradient(45deg,#2b2f37 0 14px,#262a31 14px 28px); }
+
+  .t-octane  { --bg:#0a0b0e;--card:#0e0f13;--line:#23262f;--txt:#f5f6f8;--muted:#8b93a3;--dim:#5b6270;--aA:#ff8a3d;--aB:#ffc24d;--good:#46d39a;--loss:#ff5d6c;--hot:#ff9e4d;--hot2:#ffd36b;--trk:#181a20;--glow:rgba(255,158,77,.6); }
+  .t-cryo    { --bg:#070b0f;--card:#0b1016;--line:#1a2632;--txt:#eaf6ff;--muted:#7d93a6;--dim:#516274;--aA:#39c5ff;--aB:#7af0e0;--good:#37e0c0;--loss:#ff6b8a;--hot:#39c5ff;--hot2:#9ff5ff;--trk:#10171f;--glow:rgba(57,197,255,.6); }
+  .t-synth   { --bg:#0c0716;--card:#130a22;--line:#2c1d44;--txt:#fbeaff;--muted:#a78bc6;--dim:#6e5690;--aA:#ff3db4;--aB:#8a5bff;--good:#3df0c0;--loss:#ff476b;--hot:#ff3db4;--hot2:#ffd24d;--trk:#1c1130;--glow:rgba(255,61,180,.6); }
+  .t-mono    { --bg:#0c0d0f;--card:#121316;--line:#26282d;--txt:#f4f5f6;--muted:#8b8f96;--dim:#5a5e66;--aA:#e8eaee;--aB:#9aa0aa;--good:#cfd3da;--loss:#ff6b74;--hot:#fff;--hot2:#c8ccd2;--trk:#1c1e22;--glow:rgba(255,255,255,.25); }
+  .t-acid    { --bg:#0a0c0a;--card:#0e110e;--line:#1f261f;--txt:#eef5ec;--muted:#86968a;--dim:#566353;--aA:#b6ff3d;--aB:#5fd17a;--good:#b6ff3d;--loss:#ff6b6b;--hot:#b6ff3d;--hot2:#e6ff9c;--trk:#161b16;--glow:rgba(182,255,61,.55); }
+  .t-crimson { --bg:#0b0708;--card:#120a0c;--line:#2c1a1e;--txt:#fdeef0;--muted:#b08a90;--dim:#7a565c;--aA:#ff3b4e;--aB:#ff8a3d;--good:#46d39a;--loss:#ff3b4e;--hot:#ff3b4e;--hot2:#ff9e4d;--trk:#1d1115;--glow:rgba(255,59,78,.6); }
+
+  .f { color:var(--txt); font-variant-numeric:tabular-nums; }
+  .f .w { color:var(--good); font-weight:700; } .f .l { color:var(--loss); font-weight:700; }
+  .f .delta { color:var(--good); font-style:italic; font-weight:700; }
+  .f .shield { display:grid; place-items:center; border-radius:7px; background:var(--card); border:1px solid var(--line); color:var(--aA); box-shadow:0 0 10px var(--glow); }
+  .lbl { font-size:8.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); }
+
+  /* 1 — STACK : colonne label/valeur */
+  .f-stack { width:130px; padding:13px 15px; border-radius:14px; background:var(--card); border:1px solid var(--line); box-shadow:0 12px 30px rgba(0,0,0,.5); display:flex; flex-direction:column; gap:8px; }
+  .f-stack .row { display:flex; flex-direction:column; }
+  .f-stack .big { font-size:30px; font-weight:300; line-height:1; }
+  .f-stack .v { font-size:14px; font-weight:600; }
+  .f-stack .hr { height:1px; background:var(--line); }
+  .f-stack .streak { color:var(--hot); font-weight:800; }
+
+  /* 2 — SPEEDO : demi-jauge */
+  .f-speedo { display:flex; flex-direction:column; align-items:center; }
+  .f-speedo .arc { width:130px; height:65px; overflow:hidden; position:relative; }
+  .f-speedo .arc::before { content:''; position:absolute; left:0; top:0; width:130px; height:130px; border-radius:50%;
+    background: conic-gradient(from 270deg, var(--aA) 0 36.5%, var(--trk) 36.5% 50%, transparent 50%); }
+  .f-speedo .arc::after { content:''; position:absolute; left:15px; top:15px; width:100px; height:100px; border-radius:50%;
+    background:var(--card); border:1px solid var(--line); border-bottom:none; }
+  .f-speedo .val { margin-top:-34px; text-align:center; position:relative; z-index:1; }
+  .f-speedo .mmr { font-size:26px; font-weight:300; } .f-speedo .lbl2 { font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); }
+  .f-speedo .foot { margin-top:6px; font-size:12px; color:var(--muted); }
+
+  /* 3 — TILES : 2x2 mini stats */
+  .f-tiles { display:grid; grid-template-columns:1fr 1fr; gap:7px; width:170px; }
+  .f-tiles .t { background:var(--card); border:1px solid var(--line); border-radius:11px; padding:8px 10px; box-shadow:0 6px 18px rgba(0,0,0,.4); }
+  .f-tiles .t .v { font-size:21px; font-weight:300; margin-top:2px; }
+  .f-tiles .t.accent .v { color:var(--aA); } .f-tiles .t .v.streak { color:var(--hot); font-weight:800; }
+
+  /* 4 — CHIPS : chips séparées en ligne */
+  .f-chips { display:flex; gap:8px; align-items:center; }
+  .f-chips .chip { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:7px 11px; box-shadow:0 6px 16px rgba(0,0,0,.4); display:flex; align-items:center; gap:7px; }
+  .f-chips .chip .shield { width:22px; height:22px; font-size:11px; }
+  .f-chips .tier { font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted); }
+  .f-chips .mmr { font-size:20px; font-weight:300; }
+  .f-chips .chip.hot { border-color:color-mix(in srgb,var(--hot) 50%,var(--line)); }
+  .f-chips .streak { color:var(--hot); font-weight:800; }
+
+  /* 5 — EMBLEM : gros emblème rang + MMR dessous */
+  .f-emblem { display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .f-emblem .em { width:72px; height:72px; display:grid; place-items:center; font-size:34px; color:var(--aA);
+    background:radial-gradient(circle at 50% 35%, color-mix(in srgb,var(--aA) 22%,var(--card)), var(--card) 70%);
+    border:2px solid color-mix(in srgb,var(--aA) 55%,transparent); border-radius:18px;
+    box-shadow:0 0 22px var(--glow), inset 0 0 18px color-mix(in srgb,var(--aA) 14%,transparent); clip-path: polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%); }
+  .f-emblem .mmr { font-size:30px; font-weight:300; line-height:1; } .f-emblem .delta { font-size:12px; }
+  .f-emblem .foot { font-size:11px; color:var(--muted); }
+
+  /* 6 — MARQUEE : texte glow animé, sans cadre (transparent) */
+  .f-marquee { text-align:center; }
+  .f-marquee .line1 { font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--aA);
+    text-shadow:0 0 12px var(--glow); animation: mqLine 3.2s ease-in-out infinite; }
+  .f-marquee .mmr { display:inline-block; font-size:42px; font-weight:200; letter-spacing:-1px;
+    text-shadow:0 0 20px var(--glow); animation: mqPulse 2.6s ease-in-out infinite; }
+  /* trait accent sous le MMR qui respire */
+  .f-marquee .uline { height:2px; margin:3px auto 0; border-radius:2px;
+    background:linear-gradient(90deg, transparent, var(--aA), transparent);
+    box-shadow:0 0 10px var(--glow); animation: mqUline 2.6s ease-in-out infinite; }
+  .f-marquee .line3 { font-size:13px; color:var(--muted); margin-top:5px; }
+  .f-marquee .streak { color:var(--hot); font-weight:800; }
+  @keyframes mqPulse { 0%,100%{ text-shadow:0 0 16px var(--glow); } 50%{ text-shadow:0 0 32px var(--glow), 0 0 12px var(--glow); } }
+  @keyframes mqLine  { 0%,100%{ opacity:.75; } 50%{ opacity:1; } }
+  @keyframes mqUline { 0%,100%{ width:46px; opacity:.7; } 50%{ width:92px; opacity:1; } }
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>Galerie de formes — lot 2</h1>
+    <p>6 autres formes (différentes du lot 1). Dis lesquelles tu gardes → câblage dans Ctrl+Alt+F.</p>
+  </div>
+  <div class="grid" id="grid"></div>
+<script>
+  const FORMS = [
+    { theme:'t-octane', name:'Stack', tag:'label/valeur vertical', html:`
+      <div class="f f-stack">
+        <div class="row"><span class="lbl">Diamond II</span><span class="big">1024</span><span class="delta">▲ +42</span></div>
+        <div class="hr"></div>
+        <div class="row"><span class="lbl">Session</span><span class="v"><b class="w">6W</b> <b class="l">2D</b></span></div>
+        <div class="row"><span class="lbl">Streak</span><span class="v streak">🔥 4</span></div>
+      </div>` },
+    { theme:'t-cryo', name:'Speedo', tag:'demi-jauge', html:`
+      <div class="f f-speedo">
+        <div class="arc"></div>
+        <div class="val"><div class="mmr">1024</div><div class="lbl2">Diamond II</div></div>
+        <div class="foot"><b class="w">6V</b> · <b class="l">2D</b> · 🔥4</div>
+      </div>` },
+    { theme:'t-acid', name:'Tiles', tag:'2×2 mini stats', html:`
+      <div class="f f-tiles">
+        <div class="t accent"><span class="lbl">MMR</span><div class="v">1024</div></div>
+        <div class="t"><span class="lbl">Winrate</span><div class="v">75%</div></div>
+        <div class="t"><span class="lbl">Session</span><div class="v">+42</div></div>
+        <div class="t"><span class="lbl">Streak</span><div class="v streak">🔥4</div></div>
+      </div>` },
+    { theme:'t-synth', name:'Chips', tag:'chips séparées', html:`
+      <div class="f f-chips">
+        <div class="chip"><span class="shield">◆</span><span class="tier">DIA II</span></div>
+        <div class="chip"><span class="mmr">1024</span><span class="delta">▲+42</span></div>
+        <div class="chip hot"><span class="streak">🔥4</span></div>
+      </div>` },
+    { theme:'t-crimson', name:'Emblem', tag:'emblème rang', html:`
+      <div class="f f-emblem">
+        <div class="em">◆</div>
+        <div><span class="mmr">1024</span> <span class="delta">▲+42</span></div>
+        <div class="foot">Diamond II · <b class="w">6V</b>/<b class="l">2D</b> · 🔥4</div>
+      </div>` },
+    { theme:'t-mono', name:'Marquee', tag:'texte glow sans cadre', html:`
+      <div class="f f-marquee">
+        <div class="line1">Diamond II</div>
+        <div class="mmr">1024</div>
+        <div class="uline"></div>
+        <div class="line3"><span class="delta">▲ +42</span> · <b class="w">6W</b> <b class="l">2D</b> · <span class="streak">🔥4</span></div>
+      </div>` },
+  ];
+  const grid = document.getElementById('grid');
+  for (const f of FORMS) {
+    const tile = document.createElement('div'); tile.className='tile';
+    tile.innerHTML = `<div class="tile-head"><span class="name">${f.name}</span><span class="tag">${f.tag}</span></div>
+      <div class="stage ${f.theme}">${f.html}</div>`;
+    grid.appendChild(tile);
+  }
+</script>
+</body>
+</html>

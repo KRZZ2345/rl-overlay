@@ -177,6 +177,60 @@
   .fbadge .bdelta.down { color: var(--loss); }
   .fbadge .bdelta.flat { color: var(--dim); }
 
+  /* ---- F6 — Split Wing ---- */
+  .layout-wing { width: 260px; padding: 12px; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
+    backdrop-filter: blur(4px); border: 1px solid var(--line); border-left: 3px solid var(--aA); border-radius: 8px;
+    display: flex; align-items: center; gap: 14px; box-shadow: 0 6px 24px rgba(0,0,0,0.4); }
+  .layout-wing .wing-left { display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, rgba(255,255,255,0.03), transparent); border: 1px solid var(--dim); padding: 8px; border-radius: 6px; }
+  .layout-wing .rank-icon-wing { width: 52px; height: 52px; object-fit: contain; filter: drop-shadow(0 0 8px color-mix(in srgb, var(--aA) 30%, transparent)); }
+  .layout-wing .wing-right { display: flex; flex-direction: column; flex-grow: 1; }
+  .layout-wing .row-top { display: flex; align-items: center; justify-content: space-between; line-height: 1; }
+  .layout-wing .row-top .mmr { font-size: 26px; font-weight: 900; color: var(--txt); }
+  .layout-wing .row-top .delta { font-size: 12px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.2); }
+  .layout-wing .row-top .delta.up { color: var(--good); } .layout-wing .row-top .delta.down { color: var(--loss); } .layout-wing .row-top .delta.flat { color: var(--muted); }
+  .layout-wing .row-mid { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 4px 0 6px; }
+  .layout-wing .row-bottom { display: flex; gap: 6px; }
+  .layout-wing .stat-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 3px; background: var(--card); border: 1px solid var(--line); color: var(--txt); }
+  .layout-wing .stat-badge.wr { border-color: color-mix(in srgb, var(--good) 30%, var(--line)); }
+  .layout-wing .stat-badge.streak { background: linear-gradient(90deg, var(--card), color-mix(in srgb, var(--hot2) 15%, transparent)); border-color: color-mix(in srgb, var(--hot) 40%, var(--line)); color: var(--hot); }
+
+  /* ---- F7 — Cyber Glow ---- */
+  .layout-cyber { position: relative; width: 250px; padding: 14px; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
+    backdrop-filter: blur(4px); border: 1px solid var(--line); border-radius: 4px;
+    box-shadow: 0 0 20px color-mix(in srgb, var(--aA) 15%, transparent); overflow: hidden; }
+  .layout-cyber .cyber-bg-glow { position: absolute; right: -15px; bottom: -15px; width: 110px; height: 110px; opacity: 0.22; pointer-events: none; transform: rotate(-10deg); }
+  .layout-cyber .rank-watermark { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 16px var(--aA)); }
+  .layout-cyber .cyber-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--dim); padding-bottom: 6px; margin-bottom: 8px; }
+  .layout-cyber .tier-label { font-size: 12px; font-weight: 700; color: var(--dim); letter-spacing: 1px; }
+  .layout-cyber .streak-pill { font-size: 11px; font-weight: 800; color: var(--hot); text-shadow: 0 0 8px var(--hot2); }
+  .layout-cyber .cyber-main { display: flex; align-items: center; justify-content: space-between; }
+  .layout-cyber .huge-mmr { margin: 0; font-size: 48px; font-weight: 800; color: var(--txt); line-height: 1; letter-spacing: -1px;
+    font-variant-numeric: tabular-nums; text-shadow: 0 0 14px color-mix(in srgb, var(--aA) 30%, transparent); }
+  .layout-cyber .cyber-badge-stack { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .layout-cyber .delta-tag { font-size: 12px; font-weight: 700; }
+  .layout-cyber .delta-tag.up { color: var(--good); text-shadow: 0 0 8px var(--good); } .layout-cyber .delta-tag.down { color: var(--loss); text-shadow: 0 0 8px var(--loss); } .layout-cyber .delta-tag.flat { color: var(--muted); }
+  .layout-cyber .winrate-tag { font-size: 12px; color: var(--txt); font-weight: 700; }
+  .layout-cyber .winrate-tag span { color: var(--aB); }
+
+  /* ---- F8 — Marquee (texte glow animé) ---- */
+  .f-marquee { text-align: center; }
+  .f-marquee .line1 { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--aA);
+    text-shadow: 0 0 12px color-mix(in srgb, var(--aA) 60%, transparent); animation: mqLine 3.2s ease-in-out infinite; }
+  .f-marquee .mmr { display: inline-block; font-size: 42px; font-weight: 200; letter-spacing: -1px; color: var(--txt);
+    text-shadow: 0 0 20px color-mix(in srgb, var(--aA) 60%, transparent); animation: mqPulse 2.6s ease-in-out infinite; }
+  .f-marquee .uline { height: 2px; margin: 3px auto 0; border-radius: 2px;
+    background: linear-gradient(90deg, transparent, var(--aA), transparent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--aA) 60%, transparent); animation: mqUline 2.6s ease-in-out infinite; }
+  .f-marquee .line3 { font-size: 13px; color: var(--muted); margin-top: 5px; }
+  .f-marquee .line3 .w { color: var(--good); font-weight: 700; } .f-marquee .line3 .l { color: var(--loss); font-weight: 700; }
+  .f-marquee .line3 .delta.up { color: var(--good); } .f-marquee .line3 .delta.down { color: var(--loss); } .f-marquee .line3 .delta.flat { color: var(--dim); }
+  .f-marquee .line3 .streak { color: var(--hot); font-weight: 800; }
+  @keyframes mqPulse { 0%,100% { text-shadow: 0 0 16px color-mix(in srgb, var(--aA) 55%, transparent); } 50% { text-shadow: 0 0 32px color-mix(in srgb, var(--aA) 75%, transparent), 0 0 12px color-mix(in srgb, var(--aA) 55%, transparent); } }
+  @keyframes mqLine { 0%,100% { opacity: .75; } 50% { opacity: 1; } }
+  @keyframes mqUline { 0%,100% { width: 46px; opacity: .7; } 50% { width: 92px; opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .f-marquee .line1, .f-marquee .mmr, .f-marquee .uline { animation: none; } }
+
   /* ============================================================
      ANIMATIONS — couche FX au-dessus des formes (#fx)
      ============================================================ */
@@ -399,10 +453,41 @@
           <div class="np" data-f="np"></div>
         </div>
       </div>`
+    ,
+    // F6 — Split Wing (horizontal asymétrique)
+    () => `<div class="form layout-wing">
+        <div class="wing-left"><img class="rank-icon-wing" data-f="rankIco" style="display:none" alt=""></div>
+        <div class="wing-right">
+          <div class="row-top"><span class="mmr" data-f="mmr">—</span><span class="delta flat" data-f="delta">—</span></div>
+          <div class="row-mid" data-f="tierShort">—</div>
+          <div class="row-bottom">
+            <span class="stat-badge wr"><span data-f="wr">—</span> WR</span>
+            <span class="stat-badge streak streak-zero" data-f="streak">—</span>
+          </div>
+        </div>
+      </div>`
+    ,
+    // F7 — Cyber Glow (data-terminal)
+    () => `<div class="form layout-cyber">
+        <div class="cyber-bg-glow"><img class="rank-watermark" data-f="rankIco" style="display:none" alt=""></div>
+        <div class="cyber-header"><span class="tier-label" data-f="tierShort">—</span><span class="streak-pill streak-zero" data-f="streak">—</span></div>
+        <div class="cyber-main">
+          <div class="huge-mmr" data-f="mmr">—</div>
+          <div class="cyber-badge-stack"><span class="delta-tag flat" data-f="delta">—</span><span class="winrate-tag"><span data-f="wr">—</span> WR</span></div>
+        </div>
+      </div>`
+    ,
+    // F8 — Marquee (texte glow animé, sans cadre)
+    () => `<div class="form f-marquee">
+        <div class="line1" data-f="tierShort">—</div>
+        <div class="mmr" data-f="mmr">—</div>
+        <div class="uline"></div>
+        <div class="line3"><span class="delta flat" data-f="delta">—</span> · <b class="w" data-f="wins">0</b> <b class="l" data-f="losses">0</b> · <span class="streak streak-zero" data-f="streak">—</span></div>
+      </div>`
   ];
 
   const THEME_NAMES  = ['Octane', 'Cryo', 'Synthwave', 'Mono', 'Acid', 'Crimson'];
-  const LAYOUT_NAMES = ['Minimal', 'Compact', 'Compétitif', 'Dashboard', 'Badge', 'Premium'];
+  const LAYOUT_NAMES = ['Minimal', 'Compact', 'Compétitif', 'Dashboard', 'Badge', 'Premium', 'Split Wing', 'Cyber', 'Marquee'];
   let curTheme = 0, curLayout = 0;
 
   function applyThemeClass() {

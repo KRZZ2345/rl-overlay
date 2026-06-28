@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>RL Overlay — Emblem (variantes Gemini)</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:40px 32px 80px; font-family:'Segoe UI',system-ui,sans-serif; color:#e9ecf3;
+    background: radial-gradient(80% 60% at 50% -10%, #1a1d27 0%, #0a0b0e 60%), #07080a; }
+  .page-head { max-width:1100px; margin:0 auto 36px; }
+  .page-head h1 { margin:0 0 6px; font-size:26px; font-weight:800; }
+  .page-head p { margin:0; color:#9099a8; font-size:14px; }
+  .grid { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:26px; }
+  .tile { background:#0d0f14; border:1px solid #1b1e27; border-radius:18px; padding:22px; display:flex; flex-direction:column; gap:14px; }
+  .tile-head .name { font-size:16px; font-weight:700; } .tile-head .tag { font-size:11px; color:#8a92a2; margin-left:8px; }
+  .stage { border-radius:14px; padding:26px; display:flex; align-items:center; justify-content:center; min-height:160px;
+    background: repeating-linear-gradient(45deg,#2b2f37 0 14px,#262a31 14px 28px); }
+
+  /* thèmes (tokens) — incluent --bg1/--bg2 requis par les variantes */
+  .t-octane  { --bg:#0a0b0e;--card:#0e0f13;--line:#23262f;--txt:#f5f6f8;--muted:#8b93a3;--dim:#5b6270;--aA:#ff8a3d;--aB:#ffc24d;--good:#46d39a;--loss:#ff5d6c;--hot:#ff9e4d;--hot2:#ffd36b;--bg1:rgba(26,16,8,.62);--bg2:rgba(16,10,5,.66); }
+  .t-cryo    { --bg:#070b0f;--card:#0b1016;--line:#1a2632;--txt:#eaf6ff;--muted:#7d93a6;--dim:#516274;--aA:#39c5ff;--aB:#7af0e0;--good:#37e0c0;--loss:#ff6b8a;--hot:#39c5ff;--hot2:#9ff5ff;--bg1:rgba(8,18,26,.62);--bg2:rgba(5,12,18,.66); }
+  .t-crimson { --bg:#0b0708;--card:#120a0c;--line:#2c1a1e;--txt:#fdeef0;--muted:#b08a90;--dim:#7a565c;--aA:#ff3b4e;--aB:#ff8a3d;--good:#46d39a;--loss:#ff3b4e;--hot:#ff3b4e;--hot2:#ff9e4d;--bg1:rgba(28,12,15,.62);--bg2:rgba(18,8,10,.66); }
+
+  /* ===== Variante 1 : Podium ===== */
+  .layout-podium { position:relative; width:240px; padding:16px 16px 20px; background:linear-gradient(160deg,var(--bg1),var(--bg2));
+    backdrop-filter:blur(4px); border:1px solid var(--line); border-radius:12px; display:flex; flex-direction:column; align-items:center;
+    box-shadow:0 8px 32px rgba(0,0,0,.4); overflow:hidden; }
+  @keyframes rankPulse { 0%,100%{transform:scale(1);filter:drop-shadow(0 0 12px color-mix(in srgb,var(--aA) 50%,transparent));} 50%{transform:scale(1.03);filter:drop-shadow(0 0 18px color-mix(in srgb,var(--aA) 75%,transparent));} }
+  @media (prefers-reduced-motion: no-preference){ .layout-podium .rank-icon{ animation:rankPulse 4s ease-in-out infinite; } }
+  .layout-podium .rank-hero { height:80px; display:flex; align-items:center; justify-content:center; margin-bottom:4px; }
+  .layout-podium .rank-icon { width:72px; height:72px; object-fit:contain; filter:drop-shadow(0 0 12px color-mix(in srgb,var(--aA) 40%,transparent)); }
+  .layout-podium .score-block { display:flex; align-items:baseline; gap:8px; }
+  .layout-podium .mmr { font-size:32px; font-weight:800; color:var(--txt); letter-spacing:-.5px; }
+  .layout-podium .delta { font-size:13px; font-weight:700; } .layout-podium .delta.up{color:var(--good);} .layout-podium .delta.down{color:var(--loss);}
+  .layout-podium .meta-block { display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-top:2px; }
+  .layout-podium .divider{color:var(--dim);} .layout-podium .session-wl .w{color:var(--good);} .layout-podium .session-wl .l{color:var(--loss);} .layout-podium .streak{color:var(--hot);}
+  .layout-podium .promo-track { position:absolute; bottom:0; left:0; width:100%; height:4px; background:var(--dim); }
+  .layout-podium .promo-bar { height:100%; background:linear-gradient(90deg,var(--aA),var(--aB)); box-shadow:0 0 8px var(--aA); }
+
+  /* ===== Variante 2 : Split Wing ===== */
+  .layout-wing { width:260px; padding:12px; background:linear-gradient(160deg,var(--bg1),var(--bg2)); backdrop-filter:blur(4px);
+    border:1px solid var(--line); border-left:3px solid var(--aA); border-radius:8px; display:flex; align-items:center; gap:14px; box-shadow:0 6px 24px rgba(0,0,0,.4); }
+  .layout-wing .wing-left { display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,rgba(255,255,255,.03),transparent); border:1px solid var(--dim); padding:8px; border-radius:6px; }
+  .layout-wing .rank-icon-wing { width:52px; height:52px; object-fit:contain; filter:drop-shadow(0 0 8px color-mix(in srgb,var(--aA) 30%,transparent)); }
+  .layout-wing .wing-right { display:flex; flex-direction:column; flex-grow:1; }
+  .layout-wing .row-top { display:flex; align-items:center; justify-content:space-between; line-height:1; }
+  .layout-wing .mmr { font-size:26px; font-weight:900; color:var(--txt); }
+  .layout-wing .delta { font-size:12px; font-weight:700; padding:2px 6px; border-radius:4px; background:rgba(0,0,0,.2); }
+  .layout-wing .delta.up{color:var(--good);} .layout-wing .delta.down{color:var(--loss);}
+  .layout-wing .row-mid { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin:4px 0 6px; }
+  .layout-wing .row-bottom { display:flex; gap:6px; }
+  .layout-wing .stat-badge { font-size:10px; font-weight:700; padding:2px 6px; border-radius:3px; background:var(--card); border:1px solid var(--line); color:var(--txt); }
+  .layout-wing .stat-badge.wr { border-color:color-mix(in srgb,var(--good) 30%,var(--line)); }
+  .layout-wing .stat-badge.streak { background:linear-gradient(90deg,var(--card),color-mix(in srgb,var(--hot2) 15%,transparent)); border-color:color-mix(in srgb,var(--hot) 40%,var(--line)); }
+
+  /* ===== Variante 3 : Cyber Glow ===== */
+  .layout-cyber { position:relative; width:250px; padding:14px; background:linear-gradient(160deg,var(--bg1),var(--bg2)); backdrop-filter:blur(4px);
+    border:1px solid var(--line); border-radius:4px; box-shadow:0 0 20px color-mix(in srgb,var(--aA) 15%,transparent); overflow:hidden;
+    font-family:'Segoe UI',system-ui,sans-serif; }
+  .layout-cyber .cyber-bg-glow { position:absolute; right:-15px; bottom:-15px; width:110px; height:110px; opacity:.22; pointer-events:none; transform:rotate(-10deg); }
+  .layout-cyber .rank-watermark { width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 0 16px var(--aA)); }
+  .layout-cyber .cyber-header { display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed var(--dim); padding-bottom:6px; margin-bottom:8px; }
+  .layout-cyber .tier-label { font-size:11px; font-weight:700; color:var(--dim); letter-spacing:1px; }
+  .layout-cyber .streak-pill { font-size:11px; font-weight:800; color:var(--hot); text-shadow:0 0 8px var(--hot2); }
+  .layout-cyber .cyber-main { display:flex; align-items:center; justify-content:space-between; }
+  .layout-cyber .huge-mmr { margin:0; font-size:48px; font-weight:800; color:var(--txt); line-height:1; letter-spacing:-1px; font-variant-numeric:tabular-nums; text-shadow:0 0 14px color-mix(in srgb,var(--aA) 30%,transparent); }
+  .layout-cyber .tier-label { font-size:12px; }
+  .layout-cyber .cyber-badge-stack { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+  .layout-cyber .delta-tag { font-size:12px; font-weight:700; } .layout-cyber .delta-tag.up{color:var(--good);text-shadow:0 0 8px var(--good);} .layout-cyber .delta-tag.down{color:var(--loss);text-shadow:0 0 8px var(--loss);}
+  .layout-cyber .winrate-tag { font-size:10px; color:var(--muted); font-weight:600; }
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>Emblem — 3 variantes Gemini</h1>
+    <p>Vraie icône de rang + thèmes. Dis laquelle (Podium / Wing / Cyber) → je la câble comme forme.</p>
+  </div>
+  <div class="grid">
+    <div class="tile">
+      <div class="tile-head"><span class="name">Podium</span><span class="tag">vertical · jauge promo</span></div>
+      <div class="stage t-octane">
+        <div class="f-emblem layout-podium">
+          <div class="rank-hero"><img src="ranks/s4-13.png" class="rank-icon" alt=""></div>
+          <div class="score-block"><span class="mmr">1024</span><span class="delta up">▲ +42</span></div>
+          <div class="meta-block"><span class="tier">Diamond II</span><span class="divider">•</span><span class="session-wl"><span class="w">6</span>W/<span class="l">2</span>D</span><span class="divider">•</span><span class="streak">🔥 4</span></div>
+          <div class="promo-track"><div class="promo-bar" style="width:65%"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="tile">
+      <div class="tile-head"><span class="name">Split Wing</span><span class="tag">horizontal asymétrique</span></div>
+      <div class="stage t-cryo">
+        <div class="f-emblem layout-wing">
+          <div class="wing-left"><img src="ranks/s4-13.png" class="rank-icon-wing" alt=""></div>
+          <div class="wing-right">
+            <div class="row-top"><span class="mmr">1024</span><span class="delta up">▲+42</span></div>
+            <div class="row-mid">Diamond II</div>
+            <div class="row-bottom"><span class="stat-badge wr"><span>75</span>% WR</span><span class="stat-badge streak">🔥 4</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tile">
+      <div class="tile-head"><span class="name">Cyber Glow</span><span class="tag">data-terminal · watermark</span></div>
+      <div class="stage t-crimson">
+        <div class="f-emblem layout-cyber">
+          <div class="cyber-bg-glow"><img src="ranks/s4-13.png" class="rank-watermark" alt=""></div>
+          <div class="cyber-header"><span class="tier-label">Diamond II</span><span class="streak-pill">🔥 4</span></div>
+          <div class="cyber-main"><h1 class="huge-mmr">1024</h1><div class="cyber-badge-stack"><span class="delta-tag up">▲ +42</span><span class="winrate-tag"><span>75</span>% WR</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

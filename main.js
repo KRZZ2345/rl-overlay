@@ -196,7 +196,7 @@ function createWindow() {
 }
 
 const THEME_COUNT = 6;
-const LAYOUT_COUNT = 6; // f0-f4 + Premium f5 (V2)
+const LAYOUT_COUNT = 9; // Minimal/Compact/Compétitif/Dashboard/Badge/Premium + Split Wing/Cyber/Marquee
 
 // Passe au thème suivant, persiste, et notifie le renderer (avec toast).
 function cycleTheme() {
