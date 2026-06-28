@@ -395,10 +395,14 @@ function openHub() {
     }
   });
   hubWin.center();
+  setOverlayVisible(false); // cache l'overlay tant que le Hub est ouvert
   hubWin.once('ready-to-show', () => { hubWin.show(); hubWin.focus(); });
   // Pousse le dernier view-model connu dès que la page est prête (jamais de vide).
   hubWin.webContents.on('did-finish-load', () => pushHub());
-  hubWin.on('closed', () => { hubWin = null; });
+  hubWin.on('closed', () => {
+    hubWin = null;
+    if (forceShow) setOverlayVisible(true); // restaure si affichage forcé ; sinon le watcher recale
+  });
   hubWin.loadFile('hub.html');
 }
 
@@ -579,6 +583,7 @@ async function checkForUpdate() {
 
 function setOverlayVisible(v) {
   if (forceShow) v = true;
+  if (hubWin && !hubWin.isDestroyed()) v = false; // Hub ouvert -> overlay caché (prime sur forceShow)
   if (!win || win.isDestroyed() || v === overlayVisible) return;
   overlayVisible = v;
   if (v) {
