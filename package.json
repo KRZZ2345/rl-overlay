@@ -26,5 +26,6 @@
       "!config.json",
       "!session.json"
     ]
-  }
+  },
+  "repository": "github:KRZZ2345/rl-overlay"
 }
