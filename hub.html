@@ -70,6 +70,28 @@
   .pill { display: inline-block; padding: 2px 10px; border-radius: 99px;
     background: var(--line); color: var(--muted); font-size: 13px; }
 
+  /* Bouton ? (rouvre la page touches) */
+  #keys-toggle { position: fixed; top: 12px; right: 14px; width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--card); color: var(--aA); font-size: 15px; font-weight: 800;
+    cursor: pointer; z-index: 60; box-shadow: 0 4px 14px rgba(0,0,0,0.5); }
+  #keys-toggle:hover { border-color: var(--aA); }
+
+  /* Surcouche page touches */
+  #keys { position: fixed; inset: 0; z-index: 70; display: none;
+    background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(6px);
+    padding: 40px 48px; overflow: auto; }
+  body.show-keys #keys { display: block; }
+  #keys h2 { font-size: 20px; font-weight: 800; letter-spacing: -.3px; margin-bottom: 4px; }
+  #keys .ksub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+  #keys .kgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 28px; max-width: 760px; }
+  #keys .kgroup .gh { font-size: 11px; text-transform: uppercase; letter-spacing: .14em; color: var(--aA); margin-bottom: 8px; }
+  #keys .krow { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
+  #keys .keycap { font-size: 11px; font-weight: 700; white-space: nowrap; color: var(--txt);
+    background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; }
+  #keys .kdesc { font-size: 13px; color: var(--txt); }
+  #keys .kclose { position: absolute; top: 24px; right: 28px; font-size: 13px; color: var(--muted); cursor: pointer; }
+  #keys .kclose:hover { color: var(--txt); }
+
   .hint { position: fixed; bottom: 8px; right: 12px; color: var(--dim); font-size: 11px; }
 </style>
 </head>
@@ -132,6 +154,36 @@
     <section class="card" id="tilt" data-f="tilt">⚠ —</section>
   </div>
   <div class="hint">Échap ou Ctrl+Alt+Espace pour fermer</div>
+  <button id="keys-toggle" title="Raccourcis clavier">?</button>
+  <div id="keys">
+    <span class="kclose" id="keys-close">✕ Fermer (Échap)</span>
+    <h2>Raccourcis</h2>
+    <div class="ksub">Toutes les actions se font au clavier, en jeu comme hors jeu.</div>
+    <div class="kgrid">
+      <div class="kgroup">
+        <div class="gh">Affichage</div>
+        <div class="krow"><span class="keycap">Ctrl + Alt + H</span><span class="kdesc">Montrer / cacher l'overlay</span></div>
+        <div class="krow"><span class="keycap">Ctrl + Alt + Flèches</span><span class="kdesc">Déplacer l'overlay</span></div>
+      </div>
+      <div class="kgroup">
+        <div class="gh">Apparence</div>
+        <div class="krow"><span class="keycap">Ctrl + Alt + F</span><span class="kdesc">Changer de forme</span></div>
+        <div class="krow"><span class="keycap">Ctrl + Alt + T</span><span class="kdesc">Changer de thème</span></div>
+      </div>
+      <div class="kgroup">
+        <div class="gh">Stats</div>
+        <div class="krow"><span class="keycap">Ctrl + Alt + 1 / 2 / 3</span><span class="kdesc">Playlist (1v1 / 2v2 / 3v3)</span></div>
+        <div class="krow"><span class="keycap">Ctrl + Alt + R</span><span class="kdesc">Réinitialiser la session</span></div>
+        <div class="krow"><span class="keycap">Ctrl + Alt + Espace</span><span class="kdesc">Ouvrir / fermer ce tableau de bord</span></div>
+      </div>
+      <div class="kgroup">
+        <div class="gh">Réglages</div>
+        <div class="krow"><span class="keycap">Ctrl + Alt + S</span><span class="kdesc">Fréquence de rafraîchissement</span></div>
+        <div class="krow"><span class="keycap">Ctrl + Alt + D</span><span class="kdesc">Présence Discord</span></div>
+        <div class="krow"><span class="keycap">Ctrl + Alt + P</span><span class="kdesc">Reconfigurer le pseudo</span></div>
+      </div>
+    </div>
+  </div>
 
 <script>
   const $ = (f) => document.querySelector(`[data-f="${f}"]`);
@@ -162,6 +214,7 @@
       for (const c of [...document.body.classList]) if (/^t\d$/.test(c)) document.body.classList.remove(c);
       if (vm._theme) document.body.classList.add('t' + vm._theme);
     }
+    if (vm._showKeys) document.body.classList.add('show-keys'); // auto au 1er lancement
     document.body.classList.toggle('hot', !!vm.hot);
     document.body.classList.toggle('tilted', !!(vm.heuristics && vm.heuristics.tilt && vm.heuristics.tilt.tilted));
 
@@ -236,8 +289,18 @@
   }
 
   window.hub.onUpdate(paint);
-  // Échap ferme le Hub (lecture seule : seul input autorisé).
-  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') window.hub.close(); });
+
+  const keysOn = () => document.body.classList.contains('show-keys');
+  document.getElementById('keys-toggle').addEventListener('click', () => document.body.classList.toggle('show-keys'));
+  document.getElementById('keys-close').addEventListener('click', () => document.body.classList.remove('show-keys'));
+  // clic sur le fond de la surcouche (pas sur le contenu) -> ferme
+  document.getElementById('keys').addEventListener('click', (e) => { if (e.target.id === 'keys') document.body.classList.remove('show-keys'); });
+  // Échap : ferme d'abord la page touches si ouverte, sinon ferme le Hub.
+  window.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (keysOn()) { document.body.classList.remove('show-keys'); }
+    else { window.hub.close(); }
+  });
 </script>
 </body>
 </html>
