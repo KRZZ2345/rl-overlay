@@ -193,7 +193,10 @@
   .layout-wing .row-bottom { display: flex; gap: 6px; }
   .layout-wing .stat-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 3px; background: var(--card); border: 1px solid var(--line); color: var(--txt); }
   .layout-wing .stat-badge.wr { border-color: color-mix(in srgb, var(--good) 30%, var(--line)); }
-  .layout-wing .stat-badge.streak { background: linear-gradient(90deg, var(--card), color-mix(in srgb, var(--hot2) 15%, transparent)); border-color: color-mix(in srgb, var(--hot) 40%, var(--line)); color: var(--hot); }
+  .layout-wing .stat-badge.streak { color: var(--muted); }
+  .layout-wing .stat-badge.streak.streak-win { color: #04130b; background: linear-gradient(90deg, var(--good), color-mix(in srgb, var(--good) 65%, #000)); border-color: color-mix(in srgb, var(--good) 50%, var(--line)); box-shadow: 0 0 9px color-mix(in srgb, var(--good) 45%, transparent); }
+  .layout-wing .stat-badge.streak.streak-loss { color: #1a0606; background: linear-gradient(90deg, var(--loss), color-mix(in srgb, var(--loss) 65%, #000)); border-color: color-mix(in srgb, var(--loss) 50%, var(--line)); box-shadow: 0 0 9px color-mix(in srgb, var(--loss) 45%, transparent); }
+  .layout-wing .stat-badge.streak.streak-zero { color: var(--muted); }
 
   /* ---- F7 — Cyber Glow ---- */
   .layout-cyber { position: relative; width: 250px; padding: 14px; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
@@ -203,7 +206,10 @@
   .layout-cyber .rank-watermark { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 16px var(--aA)); }
   .layout-cyber .cyber-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--dim); padding-bottom: 6px; margin-bottom: 8px; }
   .layout-cyber .tier-label { font-size: 12px; font-weight: 700; color: var(--dim); letter-spacing: 1px; }
-  .layout-cyber .streak-pill { font-size: 11px; font-weight: 800; color: var(--hot); text-shadow: 0 0 8px var(--hot2); }
+  .layout-cyber .streak-pill { font-size: 11px; font-weight: 800; color: var(--muted); }
+  .layout-cyber .streak-pill.streak-win { color: var(--good); text-shadow: 0 0 8px color-mix(in srgb, var(--good) 70%, transparent); }
+  .layout-cyber .streak-pill.streak-loss { color: var(--loss); text-shadow: 0 0 8px color-mix(in srgb, var(--loss) 70%, transparent); }
+  .layout-cyber .streak-pill.streak-zero { color: var(--dim); }
   .layout-cyber .cyber-main { display: flex; align-items: center; justify-content: space-between; }
   .layout-cyber .huge-mmr { margin: 0; font-size: 48px; font-weight: 800; color: var(--txt); line-height: 1; letter-spacing: -1px;
     font-variant-numeric: tabular-nums; text-shadow: 0 0 14px color-mix(in srgb, var(--aA) 30%, transparent); }
@@ -225,7 +231,10 @@
   .f-marquee .line3 { font-size: 13px; color: var(--muted); margin-top: 5px; }
   .f-marquee .line3 .w { color: var(--good); font-weight: 700; } .f-marquee .line3 .l { color: var(--loss); font-weight: 700; }
   .f-marquee .line3 .delta.up { color: var(--good); } .f-marquee .line3 .delta.down { color: var(--loss); } .f-marquee .line3 .delta.flat { color: var(--dim); }
-  .f-marquee .line3 .streak { color: var(--hot); font-weight: 800; }
+  .f-marquee .line3 .streak { color: var(--muted); font-weight: 800; }
+  .f-marquee .line3 .streak.streak-win { color: var(--good); }
+  .f-marquee .line3 .streak.streak-loss { color: var(--loss); }
+  .f-marquee .line3 .streak.streak-zero { color: var(--dim); }
   @keyframes mqPulse { 0%,100% { text-shadow: 0 0 16px color-mix(in srgb, var(--aA) 55%, transparent); } 50% { text-shadow: 0 0 32px color-mix(in srgb, var(--aA) 75%, transparent), 0 0 12px color-mix(in srgb, var(--aA) 55%, transparent); } }
   @keyframes mqLine { 0%,100% { opacity: .75; } 50% { opacity: 1; } }
   @keyframes mqUline { 0%,100% { width: 46px; opacity: .7; } 50% { width: 92px; opacity: 1; } }
