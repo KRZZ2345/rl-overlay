@@ -433,6 +433,8 @@ function resetCurrent() {
 ipcMain.handle('reset-session', () => resetCurrent());
 ipcMain.handle('hub-close', () => closeHub());
 
+ipcMain.handle('get-setup-theme', () => (loadConfig().overlay.theme || 0));
+
 // IPC : enregistre plateforme + pseudo. Sert au 1er lancement ET à la
 // reconfiguration (Ctrl+Alt+P) si on s'est trompé de pseudo.
 ipcMain.handle('save-setup', (_e, data) => {
@@ -441,6 +443,10 @@ ipcMain.handle('save-setup', (_e, data) => {
   const changed = cfg.username !== newUser || cfg.platform !== (data.platform || 'epic').toLowerCase();
   cfg.platform = (data.platform || 'epic').toLowerCase();
   cfg.username = newUser;
+  if (data.theme != null) {
+    const t = parseInt(data.theme, 10);
+    if (!Number.isNaN(t)) cfg.overlay.theme = ((t % THEME_COUNT) + THEME_COUNT) % THEME_COUNT;
+  }
   saveConfig(cfg);
   // Nouveau joueur -> on repart sur une session vierge (MMR/stats différents).
   if (changed) { session = freshSession(); saveSession(session); }
@@ -457,7 +463,7 @@ let overlayStarted = false;
 // Fenêtre de configuration affichée au tout premier lancement.
 function createSetupWindow() {
   setupWin = new BrowserWindow({
-    width: 380, height: 440,
+    width: 470, height: 660,
     resizable: false, frame: true, title: 'RL Overlay — Configuration',
     backgroundColor: '#0c1120',
     webPreferences: { preload: path.join(__dirname, 'setup-preload.js'), contextIsolation: true }

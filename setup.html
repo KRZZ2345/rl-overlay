@@ -2,17 +2,19 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
+<link rel="stylesheet" href="themes.css" />
+<link rel="stylesheet" href="theme-v2.css" />
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: 'Segoe UI', Arial, sans-serif;
     background: radial-gradient(120% 120% at 50% 0%, #14203c 0%, #0a0f1e 70%);
-    color: #e9eefc; padding: 22px; height: 100vh;
+    color: #e9eefc; padding: 22px; height: 100vh; overflow: hidden;
   }
   .logo { display: flex; align-items: center; gap: 9px; margin-bottom: 6px; }
   .dot { width: 10px; height: 10px; border-radius: 50%; background: #ff7e1e; box-shadow: 0 0 10px #ff7e1e; }
   h1 { font-size: 17px; letter-spacing: 0.5px; }
-  p.sub { font-size: 12px; color: #8794b8; margin-bottom: 20px; }
+  p.sub { font-size: 12px; color: #8794b8; margin-bottom: 18px; }
   label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #8794b8; margin: 16px 0 6px; }
   select, input {
     width: 100%; padding: 11px 12px; font-size: 14px;
@@ -22,52 +24,136 @@
   input:focus, select:focus { border-color: #6cc6ff; }
   select option { background: #14203c; }
   .hint { font-size: 10px; color: #6b7596; margin-top: 6px; }
-  button {
-    width: 100%; margin-top: 26px; padding: 13px; font-size: 15px; font-weight: 700;
+  button.primary {
+    width: 100%; margin-top: 24px; padding: 13px; font-size: 15px; font-weight: 700;
     color: #04130b; cursor: pointer; border: none; border-radius: 9px;
     background: linear-gradient(90deg, #4cf08a, #2fd673);
-    box-shadow: 0 0 16px rgba(76,240,138,0.35);
-    transition: transform 0.1s ease;
+    box-shadow: 0 0 16px rgba(76,240,138,0.35); transition: transform 0.1s ease;
   }
-  button:hover { transform: translateY(-1px); }
-  button:disabled { background: #2a3550; color: #6b7596; box-shadow: none; cursor: default; transform: none; }
+  button.primary:hover { transform: translateY(-1px); }
+  button.primary:disabled { background: #2a3550; color: #6b7596; box-shadow: none; cursor: default; transform: none; }
   .err { color: #ff6b6b; font-size: 12px; margin-top: 12px; min-height: 16px; }
+  .back { background: none; border: none; color: #8794b8; font-size: 12px; cursor: pointer; margin-top: 14px; }
+  .back:hover { color: #e9eefc; }
+
+  /* étapes */
+  #step2 { display: none; }
+  body.s2 #step1 { display: none; }
+  body.s2 #step2 { display: block; }
+
+  /* grille de thèmes */
+  .themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px; }
+  .sw { cursor: pointer; border: 2px solid transparent; border-radius: 10px; padding: 8px; background: rgba(255,255,255,0.04); text-align: center; transition: .12s; }
+  .sw:hover { background: rgba(255,255,255,0.08); }
+  .sw.sel { border-color: #6cc6ff; box-shadow: 0 0 0 2px rgba(108,198,255,0.25); }
+  .sw .name { font-size: 11px; font-weight: 600; margin-bottom: 6px; }
+  .sw .dots { display: flex; gap: 3px; justify-content: center; }
+  .sw .dots i { width: 16px; height: 10px; border-radius: 3px; }
+
+  /* aperçu : stage neutre pour lire la translucidité */
+  .prev-stage { margin: 14px 0 4px; border-radius: 12px; padding: 16px; display: flex; justify-content: center;
+    background: repeating-linear-gradient(45deg, #2b2f37 0 14px, #262a31 14px 28px); }
 </style>
 </head>
 <body>
   <div class="logo"><span class="dot"></span><h1>RL Overlay</h1></div>
-  <p class="sub">Configure ton profil pour afficher tes stats Rocket League.</p>
 
-  <label for="platform">Plateforme</label>
-  <select id="platform">
-    <option value="epic">Epic Games</option>
-    <option value="steam">Steam</option>
-    <option value="psn">PlayStation</option>
-    <option value="xbl">Xbox</option>
-    <option value="switch">Nintendo Switch</option>
-  </select>
+  <!-- ÉTAPE 1 : profil -->
+  <div id="step1">
+    <p class="sub">Configure ton profil pour afficher tes stats Rocket League.</p>
+    <label for="platform">Plateforme</label>
+    <select id="platform">
+      <option value="epic">Epic Games</option>
+      <option value="steam">Steam</option>
+      <option value="psn">PlayStation</option>
+      <option value="xbl">Xbox</option>
+      <option value="switch">Nintendo Switch</option>
+    </select>
+    <label for="username">Pseudo / ID</label>
+    <input id="username" type="text" placeholder="Ton pseudo exact (ex: TonPseudo)" autofocus />
+    <div class="hint">Le même que sur ton profil Tracker. Ton profil doit être public.</div>
+    <button id="next" class="primary" disabled>Suivant</button>
+  </div>
 
-  <label for="username">Pseudo / ID</label>
-  <input id="username" type="text" placeholder="Ton pseudo exact (ex: TonPseudo)" autofocus />
-  <div class="hint">Le même que sur ton profil Tracker. Ton profil doit être public.</div>
-
-  <button id="go" disabled>Démarrer l'overlay</button>
-  <div class="err" id="err"></div>
+  <!-- ÉTAPE 2 : thème + aperçu -->
+  <div id="step2">
+    <p class="sub">Choisis ton thème. L'aperçu se met à jour en direct.</p>
+    <div class="themes" id="themes"></div>
+    <div class="prev-stage">
+      <div id="preview">
+        <div class="f5"><div class="card">
+          <div class="top"><span class="tier">Diamond II</span><span class="pl5">2v2</span></div>
+          <div class="mmrrow"><span class="big">1024</span><span class="dlt up">▲ +42</span></div>
+          <div class="promo"><div class="ptrack"><div class="pfill" style="width:73%"></div></div><div class="plbl">▲ 2 victoires vers promo</div></div>
+          <div class="mom">
+            <span class="mbar win"></span><span class="mbar win"></span><span class="mbar loss"></span><span class="mbar win"></span><span class="mbar loss"></span>
+            <span class="mbar win"></span><span class="mbar win"></span><span class="mbar win glow"></span><span class="mbar win glow"></span><span class="mbar win glow"></span>
+          </div>
+          <div class="boost"><div class="btrack"><div class="bfill" style="width:82%"></div></div><div class="blbl">⚡ élan</div></div>
+          <div class="foot5">
+            <span><b class="w5">6</b> <span class="sep5">·</span> <b class="l5">2</b></span>
+            <span class="time">1:12</span>
+            <span class="pill win">🔥 4</span>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <button id="go" class="primary">Démarrer l'overlay</button>
+    <button id="back" class="back">← Retour</button>
+    <div class="err" id="err"></div>
+  </div>
 
 <script>
   const $ = (id) => document.getElementById(id);
-  const input = $('username'), go = $('go');
+  const input = $('username'), next = $('next');
+  const THEMES = [
+    { name: 'Octane',   dots: ['#ff8a3d','#ffc24d','#46d39a'] },
+    { name: 'Cryo',     dots: ['#39c5ff','#7af0e0','#37e0c0'] },
+    { name: 'Synthwave',dots: ['#ff3db4','#8a5bff','#3df0c0'] },
+    { name: 'Mono',     dots: ['#e8eaee','#9aa0aa','#cfd3da'] },
+    { name: 'Acid',     dots: ['#b6ff3d','#5fd17a','#e6ff9c'] },
+    { name: 'Crimson',  dots: ['#ff3b4e','#ff8a3d','#46d39a'] },
+  ];
+  let selTheme = 0;
 
-  input.addEventListener('input', () => { go.disabled = input.value.trim().length === 0; });
-  input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !go.disabled) go.click(); });
+  input.addEventListener('input', () => { next.disabled = input.value.trim().length === 0; });
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !next.disabled) next.click(); });
+  next.addEventListener('click', () => { document.body.classList.add('s2'); });
+  $('back').addEventListener('click', () => { document.body.classList.remove('s2'); });
 
-  go.addEventListener('click', async () => {
-    go.disabled = true; $('err').textContent = '';
+  // grille de thèmes + sélection (applique body.tN -> recolore le .f5)
+  const grid = $('themes');
+  THEMES.forEach((t, i) => {
+    const el = document.createElement('div');
+    el.className = 'sw' + (i === 0 ? ' sel' : '');
+    el.innerHTML = `<div class="name">${t.name}</div><div class="dots">${t.dots.map(c => `<i style="background:${c}"></i>`).join('')}</div>`;
+    el.addEventListener('click', () => {
+      selTheme = i;
+      document.querySelectorAll('.sw').forEach((s) => s.classList.remove('sel'));
+      el.classList.add('sel');
+      document.body.classList.remove('t1','t2','t3','t4','t5');
+      if (i) document.body.classList.add('t' + i);
+    });
+    grid.appendChild(el);
+  });
+
+  // Préselectionne le thème courant (reconfiguration Ctrl+Alt+P : ne pas réinitialiser).
+  if (window.setup.getTheme) {
+    window.setup.getTheme().then((t) => {
+      selTheme = ((t | 0) % 6 + 6) % 6;
+      document.querySelectorAll('.sw').forEach((s, idx) => s.classList.toggle('sel', idx === selTheme));
+      document.body.classList.remove('t1','t2','t3','t4','t5');
+      if (selTheme) document.body.classList.add('t' + selTheme);
+    }).catch(() => {});
+  }
+
+  $('go').addEventListener('click', async () => {
+    $('go').disabled = true; $('err').textContent = '';
     try {
-      await window.setup.save({ platform: $('platform').value, username: input.value.trim() });
+      await window.setup.save({ platform: $('platform').value, username: input.value.trim(), theme: selTheme });
     } catch (e) {
       $('err').textContent = 'Erreur : ' + e.message;
-      go.disabled = false;
+      $('go').disabled = false;
     }
   });
 </script>
