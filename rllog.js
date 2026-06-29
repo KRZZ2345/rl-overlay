@@ -10,8 +10,24 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
+const LOG_REL = path.join('My Games', 'Rocket League', 'TAGame', 'Logs', 'Launch.log');
+
+// Candidats ordonnés pour le Launch.log. Documents peut être redirigé vers
+// OneDrive (perso "OneDrive" ou pro "OneDrive - Société", exposé via %OneDrive%).
+// Pure (pas d'I/O) -> testable. home/oneDrive injectables.
+function logPathCandidates(home, oneDrive) {
+  const out = [];
+  if (home) out.push(path.join(home, 'Documents', LOG_REL));
+  if (oneDrive) out.push(path.join(oneDrive, 'Documents', LOG_REL));
+  if (home) out.push(path.join(home, 'OneDrive', 'Documents', LOG_REL));
+  return [...new Set(out)]; // dédup
+}
+
+// Renvoie le 1er candidat qui existe, sinon le 1er candidat (Documents standard).
 function defaultLogPath() {
-  return path.join(os.homedir(), 'Documents', 'My Games', 'Rocket League', 'TAGame', 'Logs', 'Launch.log');
+  const cands = logPathCandidates(os.homedir(), process.env.OneDrive);
+  for (const p of cands) { try { if (fs.existsSync(p)) return p; } catch {} }
+  return cands[0];
 }
 
 // Patterns vérifiés sur un vrai Launch.log.
@@ -81,4 +97,4 @@ function startLogWatcher(opts = {}) {
   return { stop: () => clearInterval(timer) };
 }
 
-module.exports = { startLogWatcher, parseLine, defaultLogPath, PLAYLIST_IDS };
+module.exports = { startLogWatcher, parseLine, defaultLogPath, logPathCandidates, PLAYLIST_IDS };

@@ -1,7 +1,8 @@
 // test/rllog.test.js
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { parseLine, PLAYLIST_IDS } = require('../rllog');
+const { parseLine, PLAYLIST_IDS, logPathCandidates } = require('../rllog');
+const path = require('path');
 
 // Collecteur d'événements pour parseLine.
 function collect(lines) {
@@ -39,6 +40,21 @@ test('ignore les lignes sans intérêt', () => {
     '[1731.30] Matchmaking: Post-divide PartyLeaderMMR: 31.3883',
   ]);
   assert.deepStrictEqual(e, []);
+});
+
+test('candidats chemin log : Documents + OneDrive (%OneDrive%) + OneDrive local, dédupliqués', () => {
+  const c = logPathCandidates('C:\\Users\\bob', 'C:\\Users\\bob\\OneDrive');
+  const rel = path.join('My Games', 'Rocket League', 'TAGame', 'Logs', 'Launch.log');
+  assert.strictEqual(c[0], path.join('C:\\Users\\bob', 'Documents', rel));
+  assert.strictEqual(c[1], path.join('C:\\Users\\bob\\OneDrive', 'Documents', rel));
+  assert.ok(c.length === 2 || c.length === 3); // 3e (home/OneDrive) peut dédupliquer avec le 2e
+  assert.strictEqual(new Set(c).size, c.length); // pas de doublon
+});
+
+test('candidats sans OneDrive = juste Documents', () => {
+  const c = logPathCandidates('C:\\Users\\bob', undefined);
+  assert.deepStrictEqual(c, [path.join('C:\\Users\\bob', 'Documents', 'My Games', 'Rocket League', 'TAGame', 'Logs', 'Launch.log'),
+    path.join('C:\\Users\\bob', 'OneDrive', 'Documents', 'My Games', 'Rocket League', 'TAGame', 'Logs', 'Launch.log')]);
 });
 
 test('map des ids de playlist classées', () => {
