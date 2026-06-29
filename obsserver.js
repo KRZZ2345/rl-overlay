@@ -22,6 +22,11 @@ function startObsServer(opts = {}) {
         res.end(JSON.stringify(getState() || {}));
         return;
       }
+      if (url === '/themes.css') { // tokens des 15 thèmes (partagés avec overlay/Hub)
+        res.writeHead(200, { 'Content-Type': 'text/css', 'Cache-Control': 'no-store' });
+        res.end(fs.readFileSync(path.join(__dirname, 'themes.css'), 'utf8'));
+        return;
+      }
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
       res.end(fs.readFileSync(htmlPath, 'utf8'));
     } catch (e) {

@@ -1,18 +1,20 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8"/>
 <title>RL Overlay — OBS</title>
+<link rel="stylesheet" href="/themes.css" />
 <style>
-  /* Fond transparent pour OBS Browser Source. */
+  /* Fond transparent pour OBS Browser Source. Couleurs = thème choisi (themes.css :
+     :root = thème 0, body.tN = 1-14), appliqué via /state. */
   html, body { margin: 0; background: transparent; overflow: hidden;
-    font-family: 'Segoe UI', system-ui, sans-serif; }
-  :root { --accent: #ff8a3d; --good: #46d39a; --loss: #ff5d6c; --txt: #f5f6f8; --bg: rgba(12,13,16,.82); --line: rgba(255,255,255,.12); }
+    font-family: 'Segoe UI', system-ui, sans-serif; --accent: var(--aA); }
   #wrap { display: inline-block; }
-  .card { background: var(--bg); border: 1px solid var(--line); border-radius: 14px;
+  .card { background: color-mix(in srgb, var(--card) 84%, transparent);
+    border: 1px solid var(--line); border-radius: 14px;
     padding: 12px 16px; color: var(--txt); backdrop-filter: blur(4px); min-width: 240px;
     box-shadow: 0 8px 30px rgba(0,0,0,.5); }
   .hidden { display: none !important; }
   .top { display: flex; align-items: baseline; gap: 10px; }
   .tier { font-size: 14px; font-weight: 700; }
-  .pl { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: #9aa3b2; }
+  .pl { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
   .mmr { margin-left: auto; font-size: 22px; font-weight: 300; font-variant-numeric: tabular-nums;
     text-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent); }
   .sess { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 13px; }
@@ -22,14 +24,14 @@
   .live { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 10px; }
   .live .score { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
   .live .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-  .live .c { background: rgba(255,255,255,.06); border-radius: 99px; padding: 3px 9px; font-size: 11px; color: #c7ccd6; }
+  .live .c { background: color-mix(in srgb, var(--txt) 8%, transparent); border-radius: 99px; padding: 3px 9px; font-size: 11px; color: var(--muted); }
   .live .c b { color: var(--txt); }
 </style></head>
 <body>
   <div id="wrap"><div class="card">
     <div class="top"><span class="tier" id="tier">—</span><span class="pl" id="pl"></span><span class="mmr" id="mmr">—</span></div>
     <div class="sess"><span><b class="w" id="sw">0</b>W – <b class="l" id="sl">0</b>L</span>
-      <span id="wr" style="color:#9aa3b2"></span><span class="streak" id="streak"></span></div>
+      <span id="wr" style="color:var(--muted)"></span><span class="streak" id="streak"></span></div>
     <div class="live hidden" id="live">
       <div class="score" id="score">0 – 0</div>
       <div class="chips" id="chips"></div>
@@ -39,6 +41,8 @@
   const $ = (id) => document.getElementById(id);
   async function tick() {
     let s; try { s = await (await fetch('/state', { cache: 'no-store' })).json(); } catch { return; }
+    // Thème choisi (0 = :root, 1-14 = body.tN) — mêmes couleurs que l'overlay/Hub.
+    document.body.className = s.theme ? 't' + s.theme : '';
     // En-tête rang + MMR (live si dispo, sinon tracker).
     $('tier').textContent = (s.rank && s.rank.tier) ? `${s.rank.tier} ${s.rank.division || ''}`.trim() : '—';
     $('pl').textContent = (s.rank && s.rank.playlist) ? s.rank.playlist : '';
