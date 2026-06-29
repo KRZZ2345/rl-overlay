@@ -10,5 +10,6 @@ contextBridge.exposeInMainWorld('hub', {
   resetSettings: () => ipcRenderer.invoke('reset-overlay-settings'),
   openLogs: () => ipcRenderer.invoke('open-logs-folder'),
   forceUpdateCheck: () => ipcRenderer.invoke('force-update-check'),
-  enableStats: () => ipcRenderer.invoke('enable-stats-api')
+  enableStats: () => ipcRenderer.invoke('enable-stats-api'),
+  copyObsUrl: () => ipcRenderer.invoke('copy-obs-url')
 });

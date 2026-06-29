@@ -18,6 +18,16 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.2.4',
+    date: '2026-06-29',
+    title: 'Source OBS pour le stream',
+    items: [
+      { icon: '📺', text: 'Nouvelle source OBS : copie l\'URL (Réglages → Diagnostic → « Copier l\'URL ») et colle-la dans une Browser Source OBS. Affiche un scorebug live (rang, MMR, session W/L/série, score + stats du match) sur fond transparent.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.2.3',
     date: '2026-06-29',
     title: 'Vrai installeur (.exe)',

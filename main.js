@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, globalShortcut, screen, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut, screen, shell, clipboard } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
@@ -14,6 +14,9 @@ const { enableStatsApi, findRocketLeague } = require('./lib/rlinstall');
 const { matchModel, resultFromScores } = require('./lib/statsmodel');
 const { createAggregator } = require('./lib/matchagg');
 const mmrcalib = require('./lib/mmrcalib');
+const { startObsServer } = require('./obsserver');
+const OBS_PORT = 49200;
+const OBS_URL = 'http://127.0.0.1:' + OBS_PORT + '/';
 const { makeEntry, appendMatch, summarize } = require('./lib/matchlog');
 const { sparkline } = require('./lib/sparkline');
 
@@ -511,6 +514,8 @@ ipcMain.handle('force-update-check', () => { updateChecked = false; checkForUpda
 // Active la Stats API officielle (écrit DefaultStatsAPI.ini). À appeler au setup
 // et via un bouton Réglages. Renvoie le détail (ok / need-admin / install-not-found).
 ipcMain.handle('enable-stats-api', () => enableStatsApi());
+// Copie l'URL de la source OBS dans le presse-papier.
+ipcMain.handle('copy-obs-url', () => { clipboard.writeText(OBS_URL); return OBS_URL; });
 
 // IPC : réglage overlay depuis la page Réglages du Hub.
 // Booléens (toggles) et numériques (sliders, bornés). Tout autre clé -> ignorée.
@@ -904,6 +909,23 @@ function startStatsApiWatcher() {
   });
 }
 
+// --- Source OBS (serveur local 127.0.0.1:49200) ---
+let obsServer = null;
+function obsState() {
+  const vm = lastVm || {};
+  return {
+    rank: vm.rank || null,
+    mmr: vm.mmr != null ? vm.mmr : null,
+    mmrLive: lastLiveMmr,
+    session: summarize(matches, today()),
+    live: (lastLive && lastLive.inMatch) ? lastLive : null,
+  };
+}
+function startObsServerOnce() {
+  if (obsServer) return;
+  obsServer = startObsServer({ port: OBS_PORT, getState: obsState, log: logFocus });
+}
+
 // MMR "live exact" dérivé du log : MMR interne (PartyLeaderMMR) converti en MMR
 // affiché via une calibration linéaire par playlist (apprise des paires
 // interne↔tracker). Mis à jour à chaque mise en file = instantané (avant tracker).
@@ -954,6 +976,7 @@ function startOverlay() {
   startFocusWatcher();
   startMatchLogWatcher();
   startStatsApiWatcher();
+  startObsServerOnce();
 
   globalShortcut.register('CommandOrControl+Alt+R', () => resetCurrent());
 
@@ -1152,6 +1175,7 @@ app.on('will-quit', () => {
   clearMatchBurst();
   if (logWatcher) { try { logWatcher.stop(); } catch {} }
   if (statsApi) { try { statsApi.stop(); } catch {} }
+  if (obsServer) { try { obsServer.stop(); } catch {} }
   if (focusProc) { try { focusProc.kill(); } catch {} }
   if (rpc) { try { rpc.close(); } catch {} }
 });
