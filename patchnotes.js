@@ -18,6 +18,17 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.1.8',
+    date: '2026-06-29',
+    title: 'Animations fluides + maj plus fiable',
+    items: [
+      { icon: '💫', text: 'Transitions douces dans le Hub (ouverture des pages) et recoloration fluide au changement de thème.' },
+      { icon: '🔧', text: 'Mise à jour plus fiable : le remplacement attend que l\'appli soit bien fermée et réessaie, pour ne plus rester bloqué sur une ancienne version.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.1.7',
     date: '2026-06-29',
     title: 'Réglages + correctif thèmes',

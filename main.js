@@ -820,15 +820,28 @@ function startOverlay() {
   globalShortcut.register('CommandOrControl+Alt+3', () => switchPlaylist('ranked-standard'));
 }
 
-// Helper de swap : attend la fin de l'app, mirroir le staged sur l'install, relance.
-// robocopy /MIR : 0-7 = succès. On ne purge le staged/pending qu'après succès
-// -> si le swap échoue, l'ancienne version survit et retentera au prochain boot.
+// Helper de swap : attend que TOUS les process de l'app libèrent l'exe, miroir
+// du staged sur l'install (avec retries), relance. robocopy /MIR : 0-7 = succès.
+// On ne purge staged/pending qu'après succès -> sinon l'ancienne version survit.
+// Le code de sortie est loggué dans update/apply.log (diagnostic des échecs de
+// swap : exe verrouillé = >0 transitoire, dossier protégé = 8/16 access denied).
 const APPLY_UPDATE_PS = `param([int]$ParentPid,[string]$Staged,[string]$Install,[string]$Exe)
 try { Wait-Process -Id $ParentPid -Timeout 30 -ErrorAction SilentlyContinue } catch {}
-Start-Sleep -Milliseconds 600
-robocopy $Staged $Install /MIR /NFL /NDL /NJH /NJS /NC /NS | Out-Null
-if ($LASTEXITCODE -lt 8) {
-  $upd = Split-Path $Staged
+$name = [System.IO.Path]::GetFileNameWithoutExtension($Exe)
+for ($i = 0; $i -lt 25; $i++) {
+  if (-not (Get-Process -Name $name -ErrorAction SilentlyContinue)) { break }
+  Start-Sleep -Milliseconds 400
+}
+Start-Sleep -Milliseconds 500
+$upd = Split-Path $Staged
+$ok = $false
+for ($r = 0; $r -lt 4; $r++) {
+  robocopy $Staged $Install /MIR /NFL /NDL /NJH /NJS /NC /NS | Out-Null
+  if ($LASTEXITCODE -lt 8) { $ok = $true; break }
+  Start-Sleep -Milliseconds 1000
+}
+("swap r=$r exit=$LASTEXITCODE ok=$ok at " + (Get-Date -Format o)) | Out-File -FilePath (Join-Path $upd 'apply.log') -Append -Encoding utf8
+if ($ok) {
   Remove-Item -Recurse -Force $Staged -ErrorAction SilentlyContinue
   Remove-Item -Force (Join-Path $upd 'pending.json') -ErrorAction SilentlyContinue
 }

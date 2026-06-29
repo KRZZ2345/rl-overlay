@@ -14,6 +14,9 @@
   .label { color: var(--muted); text-transform: uppercase; letter-spacing: .14em; font-size: 11px; }
   .card { position: relative; background: var(--card);
     border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+  /* Recoloration douce quand on cycle les thèmes (Ctrl+Alt+T) Hub ouvert. */
+  body, .card, .hero, .pill, .bar, .bar > i, .mom > span, .journey > span, .tp, .sw, .switch {
+    transition: background-color .35s ease, color .35s ease, border-color .35s ease, box-shadow .35s ease; }
 
   /* Bande héros : domine visuellement + embrasement Octane discret en bas. */
   .hero { display: grid; grid-template-columns: auto 1fr auto; gap: 26px; align-items: center;
@@ -77,10 +80,13 @@
   #keys-toggle:hover { border-color: var(--aA); }
 
   /* Surcouche page touches */
-  #keys { position: fixed; inset: 0; z-index: 70; display: none;
+  #keys { position: fixed; inset: 0; z-index: 70;
     background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(6px);
-    padding: 40px 48px; overflow: auto; }
-  body.show-keys #keys { display: block; }
+    padding: 40px 48px; overflow: auto;
+    opacity: 0; visibility: hidden; transform: scale(.985);
+    transition: opacity .2s ease, transform .22s cubic-bezier(.22,1,.36,1), visibility 0s linear .22s; }
+  body.show-keys #keys { opacity: 1; visibility: visible; transform: none;
+    transition: opacity .2s ease, transform .22s cubic-bezier(.22,1,.36,1), visibility 0s; }
   #keys h2 { font-size: 20px; font-weight: 800; letter-spacing: -.3px; margin-bottom: 4px; }
   #keys .ksub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
   #keys .kgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 28px; max-width: 760px; }
@@ -101,10 +107,13 @@
   #settings-toggle:hover { border-color: var(--aA); }
 
   /* Surcouche Réglages (même pattern que #keys / #news) */
-  #settings { position: fixed; inset: 0; z-index: 70; display: none;
+  #settings { position: fixed; inset: 0; z-index: 70;
     background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(6px);
-    padding: 40px 48px; overflow: auto; }
-  body.show-settings #settings { display: block; }
+    padding: 40px 48px; overflow: auto;
+    opacity: 0; visibility: hidden; transform: scale(.985);
+    transition: opacity .2s ease, transform .22s cubic-bezier(.22,1,.36,1), visibility 0s linear .22s; }
+  body.show-settings #settings { opacity: 1; visibility: visible; transform: none;
+    transition: opacity .2s ease, transform .22s cubic-bezier(.22,1,.36,1), visibility 0s; }
   #settings h2 { font-size: 20px; font-weight: 800; letter-spacing: -.3px; margin-bottom: 2px; }
   #settings .ssub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
   #settings .sclose { position: absolute; top: 24px; right: 28px; font-size: 13px; color: var(--muted); cursor: pointer; }
@@ -129,10 +138,13 @@
   #news-toggle:hover { border-color: var(--aA); }
 
   /* Surcouche page Nouveautés (même pattern que #keys) */
-  #news { position: fixed; inset: 0; z-index: 70; display: none;
+  #news { position: fixed; inset: 0; z-index: 70;
     background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(6px);
-    padding: 40px 48px; overflow: auto; }
-  body.show-news #news { display: block; }
+    padding: 40px 48px; overflow: auto;
+    opacity: 0; visibility: hidden; transform: scale(.985);
+    transition: opacity .2s ease, transform .22s cubic-bezier(.22,1,.36,1), visibility 0s linear .22s; }
+  body.show-news #news { opacity: 1; visibility: visible; transform: none;
+    transition: opacity .2s ease, transform .22s cubic-bezier(.22,1,.36,1), visibility 0s; }
   #news h2 { font-size: 20px; font-weight: 800; letter-spacing: -.3px; margin-bottom: 2px; }
   #news .nsub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
   #news .nclose { position: absolute; top: 24px; right: 28px; font-size: 13px; color: var(--muted); cursor: pointer; }

@@ -22,6 +22,10 @@
      STYLE COMMUN — Esports HUD : coins biseautés, accents néon.
      ============================================================ */
   .form { position: relative; margin: 3px; color: var(--title); }
+  /* Recoloration douce au changement de thème (Ctrl+Alt+T). Le text-shadow du
+     MMR est géré par son animation -> exclu d'ici. */
+  .form, .card, .pl, .arr, .rank, .lbl, .bar, .bar > i, .mmr {
+    transition: color .35s ease, border-color .35s ease, box-shadow .35s ease, background-color .35s ease; }
 
   /* Carte angulaire partagée par F0..F3 (biseau bas-droite + haut-gauche). */
   .card {
