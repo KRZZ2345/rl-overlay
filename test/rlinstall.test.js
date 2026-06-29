@@ -35,6 +35,16 @@ test('patchIniContent : contenu vide -> section créée', () => {
   assert.match(out, /PacketSendRate=30/);
 });
 
+test('patchIniContent : \\r orphelin (valeur collée au commentaire) -> ligne propre', () => {
+  // cas réel observé : le commentaire et la valeur séparés par \r seul (pas \n)
+  const ini = '[TAGame.MatchStatsExporter_TA]\r\n; commentaire 0 disables\rPacketSendRate=0';
+  const out = patchIniContent(ini, 30);
+  const lines = out.split('\r\n');
+  // PacketSendRate doit être seul sur sa ligne, pas derrière le ';'
+  assert.ok(lines.some((l) => /^PacketSendRate=30$/.test(l)), 'PacketSendRate sur sa propre ligne');
+  assert.ok(!/;[^\n]*PacketSendRate/.test(out), 'pas collé au commentaire');
+});
+
 test('patchIniContent : section sans PacketSendRate -> ajoutée', () => {
   const out = patchIniContent('[TAGame.MatchStatsExporter_TA]\r\nPort=49123', 30);
   assert.match(out, /PacketSendRate=30/);
