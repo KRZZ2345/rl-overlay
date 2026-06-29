@@ -114,6 +114,51 @@
 
   .hint { position: fixed; bottom: 8px; right: 12px; color: var(--dim); font-size: 11px; }
 
+  /* Bouton 🎨 (éditeur de thème), à gauche de 📈 */
+  #theme-toggle { position: fixed; top: 12px; right: 158px; width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--card); color: var(--aA); font-size: 13px;
+    cursor: pointer; z-index: 60; box-shadow: 0 4px 14px rgba(0,0,0,0.5); line-height: 28px; text-align: center; }
+  #theme-toggle:hover { border-color: var(--aA); }
+  #theme-editor { position: fixed; inset: 0; z-index: 70;
+    background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(6px);
+    padding: 40px 48px; overflow: auto;
+    opacity: 0; visibility: hidden; transform: scale(.985);
+    transition: opacity .2s ease, transform .22s cubic-bezier(.22,1,.36,1), visibility 0s linear .22s; }
+  body.show-theme #theme-editor { opacity: 1; visibility: visible; transform: none;
+    transition: opacity .2s ease, transform .22s cubic-bezier(.22,1,.36,1), visibility 0s; }
+  #theme-editor h2 { font-size: 20px; font-weight: 800; margin-bottom: 2px; }
+  #theme-editor .tesub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+  #theme-editor .teclose { position: absolute; top: 24px; right: 28px; font-size: 13px; color: var(--muted); cursor: pointer; }
+  #theme-editor .teclose:hover { color: var(--txt); }
+  #theme-editor .te-grid { display: grid; grid-template-columns: 320px 1fr; gap: 28px; max-width: 760px; }
+  #theme-editor .te-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 14px; color: var(--txt); }
+  #theme-editor .te-row span { flex: 0 0 90px; color: var(--muted); }
+  #theme-editor .te-row input[type=color] { width: 54px; height: 30px; border: 1px solid var(--line); border-radius: 8px; background: none; cursor: pointer; }
+  #theme-editor .te-name { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 8px; color: var(--txt); padding: 7px 10px; font-size: 13px; }
+  #theme-editor .te-btns { margin: 8px 0 4px; }
+  #theme-editor .te-list { display: flex; flex-direction: column; gap: 6px; }
+  #theme-editor .te-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  #theme-editor .te-item .sw { width: 26px; height: 14px; border-radius: 4px; flex: 0 0 auto; }
+  #theme-editor .te-item .nm { flex: 1; color: var(--txt); }
+  #theme-editor .te-item button { background: var(--card); border: 1px solid var(--line); color: var(--muted); border-radius: 6px; padding: 3px 8px; font-size: 11px; cursor: pointer; }
+  #theme-editor .te-item button:hover { border-color: var(--aA); color: var(--aA); }
+  /* Aperçu : carte teintée par les tokens (posés inline sur #te-preview) */
+  #te-preview { display: flex; align-items: flex-start; }
+  #te-preview .tp-card { width: 100%; background: linear-gradient(160deg, var(--bg1), var(--bg2));
+    border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent); border-radius: 12px; padding: 16px 18px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.45); }
+  #te-preview .tp-top { font-size: 13px; color: var(--muted); }
+  #te-preview .tp-tier { color: var(--txt); font-weight: 700; font-size: 15px; }
+  #te-preview .tp-mmr { font-weight: 300; font-size: 44px; color: var(--accent); line-height: 1; margin: 6px 0;
+    text-shadow: 0 0 16px color-mix(in srgb, var(--accent) 55%, transparent); }
+  #te-preview .tp-line { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  #te-preview .tp-delta { color: var(--good); font-style: italic; }
+  #te-preview .tp-streak { padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 800; color: var(--bg);
+    background: linear-gradient(100deg, var(--hot), var(--hot2)); }
+  #te-preview .tp-wl { margin-left: auto; color: var(--muted); } #te-preview .tp-w { color: var(--good); } #te-preview .tp-l { color: var(--loss); }
+  #te-preview .tp-bar { height: 7px; border-radius: 99px; background: var(--line); margin-top: 12px; overflow: hidden; }
+  #te-preview .tp-bar > i { display: block; height: 100%; width: 62%; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+
   /* Bouton 📈 (ouvre l'Historique), à gauche de ⚙ */
   #history-toggle { position: fixed; top: 12px; right: 122px; width: 30px; height: 30px; border-radius: 50%;
     border: 1px solid var(--line); background: var(--card); color: var(--aA); font-size: 13px;
@@ -326,8 +371,37 @@
     <section class="card" id="tilt" data-f="tilt">⚠ —</section>
   </div>
   <div class="hint">Échap ou Ctrl+Alt+Espace pour fermer</div>
+  <button id="theme-toggle" title="Éditeur de thème">🎨</button>
   <button id="history-toggle" title="Historique">📈</button>
   <button id="settings-toggle" title="Réglages">⚙</button>
+  <div id="theme-editor">
+    <span class="teclose" id="theme-close">✕ Fermer (Échap)</span>
+    <h2>Éditeur de thème</h2>
+    <div class="tesub">Crée ton thème : 4 couleurs, le reste est calculé. Aperçu en direct.</div>
+    <div class="te-grid">
+      <div class="te-controls">
+        <label class="te-row"><span>Accent A</span><input type="color" id="te-aA" value="#ff8a3d"></label>
+        <label class="te-row"><span>Accent B</span><input type="color" id="te-aB" value="#ffc24d"></label>
+        <label class="te-row"><span>Fond</span><input type="color" id="te-bg" value="#0a0b0e"></label>
+        <label class="te-row"><span>Texte</span><input type="color" id="te-txt" value="#f5f6f8"></label>
+        <label class="te-row"><span>Nom</span><input type="text" id="te-name" maxlength="30" placeholder="Mon thème" class="te-name"></label>
+        <div class="te-btns">
+          <button class="dbtn" id="te-save">Enregistrer + appliquer</button>
+        </div>
+        <div class="dsep">Mes thèmes</div>
+        <div id="te-list" class="te-list"></div>
+      </div>
+      <div class="te-preview" id="te-preview">
+        <div class="tp-card">
+          <div class="tp-top"><span class="tp-tier">Diamant II</span><span class="tp-pl">· 2v2</span></div>
+          <div class="tp-mmr">1234</div>
+          <div class="tp-line"><span class="tp-delta">▲ +24</span><span class="tp-streak">🔥 3</span>
+            <span class="tp-wl"><b class="tp-w">7</b>W <b class="tp-l">3</b>L</span></div>
+          <div class="tp-bar"><i></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
   <button id="news-toggle" title="Nouveautés">🎁</button>
   <button id="keys-toggle" title="Raccourcis clavier">?</button>
   <div id="history">
@@ -455,6 +529,7 @@
   </div>
 
 <script src="patchnotes.js"></script>
+<script src="lib/themegen.js"></script>
 <script>
   const $ = (f) => document.querySelector(`[data-f="${f}"]`);
   const txt = (f, v) => { const el = $(f); if (el) el.textContent = v; };
@@ -479,11 +554,17 @@
 
   function paint(vm) {
     if (!vm) return;
-    // Thème (Ctrl+Alt+T) poussé via _theme : 0 = :root, 1-5 = body.tN.
-    if (vm._theme != null) {
+    // Thème : built-in (_theme -> classe tN) ou custom (_themeVars -> vars inline).
+    const TT = ['bg', 'card', 'line', 'txt', 'muted', 'dim', 'aA', 'aB', 'accent', 'accent2', 'title', 'good', 'loss', 'hot', 'hot2', 'bg1', 'bg2'];
+    if (vm._themeVars) {
+      for (const c of [...document.body.classList]) if (/^t\d+$/.test(c)) document.body.classList.remove(c);
+      for (const k of TT) if (vm._themeVars[k] != null) document.body.style.setProperty('--' + k, vm._themeVars[k]);
+    } else if (vm._theme != null) {
+      for (const k of TT) document.body.style.removeProperty('--' + k);
       for (const c of [...document.body.classList]) if (/^t\d+$/.test(c)) document.body.classList.remove(c);
       if (vm._theme) document.body.classList.add('t' + vm._theme);
     }
+    if (vm._customThemes) { customThemes = vm._customThemes; if (document.body.classList.contains('show-theme')) renderCustomList(); }
     // Match en direct (Stats API). Visible seulement en match.
     const lc = document.getElementById('live-card'), live = vm._live;
     if (lc) {
@@ -789,6 +870,47 @@
   });
   document.getElementById('history-close').addEventListener('click', () => document.body.classList.remove('show-history'));
   document.getElementById('history').addEventListener('click', (e) => { if (e.target.id === 'history') document.body.classList.remove('show-history'); });
+
+  // --- Éditeur de thème ---
+  let customThemes = [];
+  const teGet = (id) => document.getElementById(id);
+  function teInputs() { return { aA: teGet('te-aA').value, aB: teGet('te-aB').value, bg: teGet('te-bg').value, txt: teGet('te-txt').value }; }
+  function refreshPreview() {
+    if (!window.themegen) return;
+    const v = window.themegen.deriveTheme(teInputs());
+    const p = teGet('te-preview');
+    for (const k in v) p.style.setProperty('--' + k, v[k]);
+  }
+  function renderCustomList() {
+    const box = teGet('te-list');
+    if (!box) return;
+    box.innerHTML = (customThemes || []).map((c, i) => {
+      const v = window.themegen.deriveTheme(c);
+      return `<div class="te-item" data-load="${i}"><span class="sw" style="background:linear-gradient(135deg,${v.aA},${v.aB})"></span>` +
+        `<span class="nm">${c.name}</span><button data-act="apply" data-i="${i}">Appliquer</button>` +
+        `<button data-act="del" data-n="${c.name}">Suppr</button></div>`;
+    }).join('') || '<span style="color:var(--muted);font-size:13px">Aucun thème perso pour l\'instant.</span>';
+  }
+  ['te-aA', 'te-aB', 'te-bg', 'te-txt'].forEach((id) => teGet(id).addEventListener('input', refreshPreview));
+  teGet('te-save').addEventListener('click', async () => {
+    const name = (teGet('te-name').value || '').trim() || 'Mon thème';
+    const b = teGet('te-save'); const old = b.textContent; b.textContent = '…';
+    try { await window.hub.saveTheme({ name, ...teInputs() }); b.textContent = '✓ Appliqué'; } catch { b.textContent = '⚠'; }
+    setTimeout(() => { b.textContent = old; }, 1800);
+  });
+  teGet('te-list').addEventListener('click', (e) => {
+    const act = e.target.getAttribute('data-act');
+    if (act === 'apply') { window.hub.applyTheme(15 + parseInt(e.target.getAttribute('data-i'), 10)); return; }
+    if (act === 'del') { window.hub.deleteTheme(e.target.getAttribute('data-n')); return; }
+    const item = e.target.closest('.te-item'); // clic sur la ligne -> charge dans les pickers
+    if (item) { const c = customThemes[parseInt(item.getAttribute('data-load'), 10)]; if (c) { teGet('te-aA').value = c.aA; teGet('te-aB').value = c.aB; teGet('te-bg').value = c.bg; teGet('te-txt').value = c.txt; teGet('te-name').value = c.name; refreshPreview(); } }
+  });
+  teGet('theme-toggle').addEventListener('click', () => {
+    document.body.classList.toggle('show-theme');
+    if (document.body.classList.contains('show-theme')) { renderCustomList(); refreshPreview(); }
+  });
+  teGet('theme-close').addEventListener('click', () => document.body.classList.remove('show-theme'));
+  teGet('theme-editor').addEventListener('click', (e) => { if (e.target.id === 'theme-editor') document.body.classList.remove('show-theme'); });
   // Échap : ferme d'abord une surcouche ouverte, sinon ferme le Hub.
   window.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
@@ -796,6 +918,7 @@
     else if (newsOn()) { document.body.classList.remove('show-news'); }
     else if (settingsOn()) { document.body.classList.remove('show-settings'); }
     else if (document.body.classList.contains('show-history')) { document.body.classList.remove('show-history'); }
+    else if (document.body.classList.contains('show-theme')) { document.body.classList.remove('show-theme'); }
     else { window.hub.close(); }
   });
 </script>

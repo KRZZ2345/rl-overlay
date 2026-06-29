@@ -14,6 +14,19 @@ const { enableStatsApi, findRocketLeague } = require('./lib/rlinstall');
 const { matchModel, resultFromScores } = require('./lib/statsmodel');
 const { createAggregator } = require('./lib/matchagg');
 const mmrcalib = require('./lib/mmrcalib');
+const themegen = require('./lib/themegen');
+
+// Nb total de thèmes (built-in + customs) et payload d'application du thème courant :
+// built-in -> { theme: idx } (classe body.tN) ; custom -> { themeVars } (vars inline).
+function themeCount() { return THEME_COUNT + ((loadConfig().overlay.customThemes || []).length); }
+function themePayload() {
+  const o = loadConfig().overlay;
+  const tot = THEME_COUNT + ((o.customThemes || []).length);
+  const idx = (((o.theme || 0) % tot) + tot) % tot;
+  if (idx < THEME_COUNT) return { theme: idx };
+  const c = (o.customThemes || [])[idx - THEME_COUNT];
+  return c ? { themeVars: themegen.deriveTheme(c), themeName: c.name } : { theme: 0 };
+}
 const { startObsServer } = require('./obsserver');
 const OBS_PORT = 49200;
 const OBS_URL = 'http://127.0.0.1:' + OBS_PORT + '/';
@@ -34,7 +47,7 @@ const DEFAULT_CONFIG = {
   username: '',
   playlist: 'ranked-doubles',
   pollSeconds: 15,
-  overlay: { anchor: 'bottom-right', marginX: 320, marginY: 50, x: 20, y: 20, clickThrough: true, theme: 0, layout: 5, tutoSeen: false, lastSeenVersion: null, mmrGlow: true, showMusic: true, overlayScale: 100, overlayOpacity: 100, showStreak: true, showDelta: true },
+  overlay: { anchor: 'bottom-right', marginX: 320, marginY: 50, x: 20, y: 20, clickThrough: true, theme: 0, layout: 5, tutoSeen: false, lastSeenVersion: null, mmrGlow: true, showMusic: true, overlayScale: 100, overlayOpacity: 100, showStreak: true, showDelta: true, customThemes: [] },
   // Discord Rich Presence : affiche MMR/rang live sur ton profil Discord.
   // clientId = "Application ID" d'une app creee sur discord.com/developers
   // (1 min, voir README). Vide = desactive. largeImageKey = cle d'un asset
@@ -201,7 +214,7 @@ function createWindow() {
   // Applique le thème mémorisé dès que la page est prête.
   win.webContents.on('did-finish-load', () => {
     const o = loadConfig().overlay;
-    sendUpdate({ theme: (o.theme || 0) % THEME_COUNT, layout: o.layout || 0,
+    sendUpdate({ ...themePayload(), layout: o.layout || 0,
       mmrGlow: o.mmrGlow !== false, showMusic: o.showMusic !== false,
       overlayScale: o.overlayScale ?? 100, overlayOpacity: o.overlayOpacity ?? 100,
       showStreak: o.showStreak !== false, showDelta: o.showDelta !== false });
@@ -215,10 +228,10 @@ const LAYOUT_COUNT = 9; // Minimal/Compact/Compétitif/Dashboard/Badge/Premium +
 // Passe au thème suivant, persiste, et notifie le renderer (avec toast).
 function cycleTheme() {
   const cfg = loadConfig();
-  const next = (((cfg.overlay.theme || 0) + 1) % THEME_COUNT);
+  const next = (((cfg.overlay.theme || 0) + 1) % themeCount());
   cfg.overlay.theme = next;
   saveConfig(cfg);
-  sendUpdate({ theme: next, themeToast: true });
+  sendUpdate({ ...themePayload(), themeToast: true }); // built-in (classe) ou custom (vars)
   pushHub(); // recolore le Hub en direct s'il est ouvert
 }
 
@@ -384,8 +397,10 @@ let showNewsOnce = false; // arme l'affichage de la page Nouveautés (1er lancem
 function pushHub() {
   if (hubWin && !hubWin.isDestroyed() && lastVm) {
     const o = loadConfig().overlay;
-    const theme = (o.theme || 0) % THEME_COUNT;
-    const payload = { ...lastVm, _theme: theme, _mmrGlow: o.mmrGlow !== false, _showMusic: o.showMusic !== false,
+    const tp = themePayload();
+    const payload = { ...lastVm, _theme: tp.theme, _themeVars: tp.themeVars || null,
+      _customThemes: o.customThemes || [], _themeIndex: o.theme || 0,
+      _mmrGlow: o.mmrGlow !== false, _showMusic: o.showMusic !== false,
       _overlayScale: o.overlayScale ?? 100, _overlayOpacity: o.overlayOpacity ?? 100,
       _showStreak: o.showStreak !== false, _showDelta: o.showDelta !== false,
       _live: (lastLive && lastLive.inMatch) ? lastLive : null,
@@ -516,6 +531,39 @@ ipcMain.handle('force-update-check', () => { updateChecked = false; checkForUpda
 ipcMain.handle('enable-stats-api', () => enableStatsApi());
 // Copie l'URL de la source OBS dans le presse-papier.
 ipcMain.handle('copy-obs-url', () => { clipboard.writeText(OBS_URL); return OBS_URL; });
+
+// --- Éditeur de thèmes custom ---
+// Enregistre (ou remplace par nom) un thème {name,aA,aB,bg,txt}, l'applique.
+ipcMain.handle('save-custom-theme', (_e, t) => {
+  if (!t || !t.name) return { ok: false };
+  const cfg = loadConfig();
+  const list = cfg.overlay.customThemes || [];
+  const clean = { name: String(t.name).slice(0, 30), aA: t.aA, aB: t.aB, bg: t.bg, txt: t.txt };
+  const i = list.findIndex((c) => c.name === clean.name);
+  if (i >= 0) list[i] = clean; else list.push(clean);
+  cfg.overlay.customThemes = list.slice(0, 20);
+  const pos = cfg.overlay.customThemes.findIndex((c) => c.name === clean.name);
+  cfg.overlay.theme = THEME_COUNT + pos; // applique ce custom
+  saveConfig(cfg);
+  sendUpdate({ ...themePayload() }); pushHub();
+  return { ok: true };
+});
+ipcMain.handle('delete-custom-theme', (_e, name) => {
+  const cfg = loadConfig();
+  cfg.overlay.customThemes = (cfg.overlay.customThemes || []).filter((c) => c.name !== name);
+  if ((cfg.overlay.theme || 0) >= THEME_COUNT + cfg.overlay.customThemes.length) cfg.overlay.theme = 0;
+  saveConfig(cfg);
+  sendUpdate({ ...themePayload() }); pushHub();
+  return { ok: true };
+});
+ipcMain.handle('apply-theme', (_e, index) => {
+  const cfg = loadConfig();
+  const tot = THEME_COUNT + (cfg.overlay.customThemes || []).length;
+  cfg.overlay.theme = (((Number(index) || 0) % tot) + tot) % tot;
+  saveConfig(cfg);
+  sendUpdate({ ...themePayload() }); pushHub();
+  return { ok: true };
+});
 
 // IPC : réglage overlay depuis la page Réglages du Hub.
 // Booléens (toggles) et numériques (sliders, bornés). Tout autre clé -> ignorée.
@@ -919,7 +967,7 @@ function obsState() {
     mmrLive: lastLiveMmr,
     session: summarize(matches, today()),
     live: (lastLive && lastLive.inMatch) ? lastLive : null,
-    theme: (loadConfig().overlay.theme || 0) % THEME_COUNT, // thème choisi
+    ...themePayload(), // theme (built-in) ou themeVars (custom)
     layout: (loadConfig().overlay.layout || 0) % LAYOUT_COUNT, // forme choisie
     rankIcon: vm.rankIcon || (vm.rank && vm.rank.icon) || null,
   };

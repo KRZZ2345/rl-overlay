@@ -41,8 +41,15 @@
   const $ = (id) => document.getElementById(id);
   async function tick() {
     let s; try { s = await (await fetch('/state', { cache: 'no-store' })).json(); } catch { return; }
-    // Thème choisi (0 = :root, 1-14 = body.tN) — mêmes couleurs que l'overlay/Hub.
-    document.body.className = s.theme ? 't' + s.theme : '';
+    // Thème : built-in (classe tN) ou custom (vars inline).
+    const TT = ['bg', 'card', 'line', 'txt', 'muted', 'dim', 'aA', 'aB', 'accent', 'accent2', 'title', 'good', 'loss', 'hot', 'hot2', 'bg1', 'bg2'];
+    if (s.themeVars) {
+      document.body.className = '';
+      for (const k of TT) if (s.themeVars[k] != null) document.body.style.setProperty('--' + k, s.themeVars[k]);
+    } else {
+      for (const k of TT) document.body.style.removeProperty('--' + k);
+      document.body.className = s.theme ? 't' + s.theme : '';
+    }
     // En-tête rang + MMR (live si dispo, sinon tracker).
     $('tier').textContent = (s.rank && s.rank.tier) ? `${s.rank.tier} ${s.rank.division || ''}`.trim() : '—';
     $('pl').textContent = (s.rank && s.rank.playlist) ? s.rank.playlist : '';

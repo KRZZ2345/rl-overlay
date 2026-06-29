@@ -525,7 +525,16 @@
     // halo serait effacé à chaque changement de thème).
     document.body.className = [curTheme ? 't' + curTheme : '', glowOff ? 'no-glow' : ''].filter(Boolean).join(' ');
   }
+  // Tokens d'un thème (pour poser/retirer les vars inline d'un thème custom).
+  const THEME_TOKENS = ['bg', 'card', 'line', 'txt', 'muted', 'dim', 'aA', 'aB', 'accent', 'accent2', 'title', 'good', 'loss', 'hot', 'hot2', 'bg1', 'bg2'];
+  function clearThemeVars() { for (const k of THEME_TOKENS) document.body.style.removeProperty('--' + k); }
+  function applyThemeVars(v, withToast) {
+    curTheme = 0; applyThemeClass();              // pas de classe tN : les vars inline priment
+    for (const k of THEME_TOKENS) if (v[k] != null) document.body.style.setProperty('--' + k, v[k]);
+    if (withToast) showToast('🎨 thème perso');
+  }
   function applyTheme(idx, withToast) {
+    clearThemeVars();                              // repasse en built-in : on retire les vars custom
     curTheme = ((idx % THEME_NAMES.length) + THEME_NAMES.length) % THEME_NAMES.length;
     applyThemeClass();
     if (withToast) showToast('🎨 ' + THEME_NAMES[curTheme]);
@@ -797,7 +806,8 @@
   renderForm();
 
   const __onUpdate = (d) => {
-    if (d.theme !== undefined) applyTheme(d.theme, d.themeToast);
+    if (d.themeVars) applyThemeVars(d.themeVars, d.themeToast);
+    else if (d.theme !== undefined) applyTheme(d.theme, d.themeToast);
     if (d.layout !== undefined) applyLayout(d.layout, d.layoutToast);
     if (d.mmrGlow !== undefined) { glowOff = !d.mmrGlow; applyThemeClass(); }
     if (d.showMusic !== undefined) { showMusic = d.showMusic; paint(); }

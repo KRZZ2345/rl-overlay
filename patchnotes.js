@@ -18,6 +18,16 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.2.8',
+    date: '2026-06-29',
+    title: 'Éditeur de thème',
+    items: [
+      { icon: '🎨', text: 'Crée tes propres thèmes ! Bouton 🎨 dans le Hub : choisis 4 couleurs (accent A/B, fond, texte), le reste est calculé, aperçu en direct. Tes thèmes se cyclent avec Ctrl+Alt+T comme les autres et s\'appliquent partout (overlay, Hub, OBS).' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.2.7',
     date: '2026-06-29',
     title: 'OBS = ton overlay exact (forme + thème)',

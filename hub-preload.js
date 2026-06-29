@@ -11,5 +11,8 @@ contextBridge.exposeInMainWorld('hub', {
   openLogs: () => ipcRenderer.invoke('open-logs-folder'),
   forceUpdateCheck: () => ipcRenderer.invoke('force-update-check'),
   enableStats: () => ipcRenderer.invoke('enable-stats-api'),
-  copyObsUrl: () => ipcRenderer.invoke('copy-obs-url')
+  copyObsUrl: () => ipcRenderer.invoke('copy-obs-url'),
+  saveTheme: (t) => ipcRenderer.invoke('save-custom-theme', t),
+  deleteTheme: (name) => ipcRenderer.invoke('delete-custom-theme', name),
+  applyTheme: (index) => ipcRenderer.invoke('apply-theme', index)
 });
