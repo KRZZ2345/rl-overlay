@@ -12,6 +12,15 @@
     box-sizing: border-box; padding: 22px 26px;
     background: radial-gradient(120% 90% at 80% -10%, var(--card), var(--bg) 70%); }
   .label { color: var(--muted); text-transform: uppercase; letter-spacing: .14em; font-size: 11px; }
+  /* Match en direct (Stats API) */
+  .live { border-color: color-mix(in srgb, var(--hot) 45%, var(--line)); }
+  .live .live-row { display: flex; align-items: center; gap: 22px; margin-top: 8px; }
+  .live .live-score { font-size: 40px; font-weight: 800; font-variant-numeric: tabular-nums;
+    letter-spacing: -.02em; color: var(--txt); white-space: nowrap; }
+  .live .live-stats { display: flex; flex-wrap: wrap; gap: 8px; }
+  .live .lst { background: var(--card); border: 1px solid var(--line); border-radius: 99px;
+    padding: 5px 12px; font-size: 12px; color: var(--muted); }
+  .live .lst b { color: var(--txt); font-size: 14px; font-variant-numeric: tabular-nums; }
   .card { position: relative; background: var(--card);
     border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
   /* Recoloration douce quand on cycle les thèmes (Ctrl+Alt+T) Hub ouvert. */
@@ -238,6 +247,14 @@
 </head>
 <body>
   <div class="hub">
+    <!-- Match en direct (Stats API) — visible seulement en match -->
+    <section class="card live" id="live-card" style="display:none">
+      <div class="label">🔴 Match en direct · <span id="live-time">—</span></div>
+      <div class="live-row">
+        <div class="live-score" id="live-score">—</div>
+        <div class="live-stats" id="live-stats"></div>
+      </div>
+    </section>
     <!-- Héros -->
     <section class="card hero">
       <div class="rankblock">
@@ -445,6 +462,19 @@
     if (vm._theme != null) {
       for (const c of [...document.body.classList]) if (/^t\d+$/.test(c)) document.body.classList.remove(c);
       if (vm._theme) document.body.classList.add('t' + vm._theme);
+    }
+    // Match en direct (Stats API). Visible seulement en match.
+    const lc = document.getElementById('live-card'), live = vm._live;
+    if (lc) {
+      if (live && live.me) {
+        lc.style.display = '';
+        const cl = (s) => { const m = Math.floor((s || 0) / 60), x = (s || 0) % 60; return m + ':' + String(x).padStart(2, '0'); };
+        const t = document.getElementById('live-time'); if (t) t.textContent = (live.overtime ? 'PROL. ' : '') + cl(live.time);
+        const sc = document.getElementById('live-score'); if (sc) sc.textContent = live.teamScore + ' – ' + live.oppScore;
+        const st = document.getElementById('live-stats');
+        if (st) st.innerHTML = [['Buts', live.me.goals], ['Passes', live.me.assists], ['Tirs', live.me.shots], ['Arrêts', live.me.saves], ['Boost', live.me.boost + '%']]
+          .map(([k, v]) => `<span class="lst"><b>${v}</b> ${k}</span>`).join('');
+      } else { lc.style.display = 'none'; }
     }
     if (vm._showKeys) document.body.classList.add('show-keys'); // auto au 1er lancement
     if (vm._showNews) document.body.classList.add('show-news'); // auto au 1er lancement après update

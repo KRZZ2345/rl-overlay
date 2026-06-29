@@ -11,6 +11,7 @@ const { isNewer, pickAsset, repoSlug, compareVersions } = require('./lib/updater
 const { startLogWatcher, defaultLogPath } = require('./rllog');
 const { startStatsApi } = require('./statsapi');
 const { enableStatsApi, findRocketLeague } = require('./lib/rlinstall');
+const { matchModel } = require('./lib/statsmodel');
 const { makeEntry, appendMatch, summarize } = require('./lib/matchlog');
 const { sparkline } = require('./lib/sparkline');
 
@@ -381,7 +382,8 @@ function pushHub() {
     const theme = (o.theme || 0) % THEME_COUNT;
     const payload = { ...lastVm, _theme: theme, _mmrGlow: o.mmrGlow !== false, _showMusic: o.showMusic !== false,
       _overlayScale: o.overlayScale ?? 100, _overlayOpacity: o.overlayOpacity ?? 100,
-      _showStreak: o.showStreak !== false, _showDelta: o.showDelta !== false };
+      _showStreak: o.showStreak !== false, _showDelta: o.showDelta !== false,
+      _live: (lastLive && lastLive.inMatch) ? lastLive : null };
     if (showKeysOnce) { payload._showKeys = true; showKeysOnce = false; }
     if (showNewsOnce) { payload._showNews = true; showNewsOnce = false; }
     hubWin.webContents.send('hub-update', payload);
@@ -847,18 +849,29 @@ function refreshAfterMatch() {
 // 1re frame brute) dans overlay.log, pour ensuite mapper l'affichage sur de vraies
 // données plutôt que de deviner. EAC-safe (lecture seule du socket).
 let statsApi = null;
-const statsSeen = new Set();
-let statsFramesLogged = 0;
+let lastLive = null;          // dernier modèle de match en direct (Stats API)
+let lastLiveSent = 0, lastLiveSig = '';
 function startStatsApiWatcher() {
   if (statsApi) return;
   statsApi = startStatsApi({
     log: logFocus,
     onEvent: (v) => {
-      // Enveloppe officielle : { Event, Data }. On capture les types vus + qq frames
-      // brutes pour caler l'implémentation sur de vraies données.
-      const ev = (v && (v.Event || v.event)) || (v && Object.keys(v).join(',')) || 'frame';
-      if (!statsSeen.has(ev)) { statsSeen.add(ev); logFocus('statsapi event: ' + ev); }
-      if (statsFramesLogged < 4) { statsFramesLogged++; logFocus('statsapi frame#' + statsFramesLogged + ': ' + JSON.stringify(v).slice(0, 700)); }
+      const ev = v && v.Event;
+      if (ev === 'UpdateState') {
+        const cfg = loadConfig();
+        const model = matchModel(v.Data, { username: cfg.username });
+        // throttle ~4/s + n'émet que si ça a changé (l'API débite jusqu'à 120 Hz)
+        const sig = model.me ? `${model.me.goals}.${model.me.saves}.${model.me.shots}.${model.me.assists}.${model.me.boost}.${model.teamScore}.${model.oppScore}.${model.time}` : 'none';
+        const now = Date.now();
+        if (now - lastLiveSent >= 250 && sig !== lastLiveSig) {
+          lastLiveSent = now; lastLiveSig = sig; lastLive = model;
+          pushHub(); // le payload Hub embarque _live
+        }
+      } else if (ev === 'MatchEnded' || ev === 'Initialized' || ev === 'MatchDestroyed') {
+        // fin/début de match : on efface l'état live (la session W/L viendra ensuite)
+        if (ev !== 'MatchEnded') { lastLive = null; lastLiveSig = ''; pushHub(); }
+        logFocus('statsapi: ' + ev);
+      }
     },
   });
 }
