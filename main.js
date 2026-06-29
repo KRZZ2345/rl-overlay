@@ -485,6 +485,16 @@ ipcMain.handle('get-matches', () => ({
   recent: matches.slice(-12).reverse(),
   spark: sparkline(matches.slice(-30).map((m) => m.mmr).filter((n) => n != null)),
 }));
+// Remet les réglages d'affichage à leurs valeurs par défaut.
+const OVERLAY_SETTING_DEFAULTS = { mmrGlow: true, showMusic: true, showStreak: true, showDelta: true, overlayScale: 100, overlayOpacity: 100 };
+ipcMain.handle('reset-overlay-settings', () => {
+  const cfg = loadConfig();
+  Object.assign(cfg.overlay, OVERLAY_SETTING_DEFAULTS);
+  saveConfig(cfg);
+  sendUpdate({ ...OVERLAY_SETTING_DEFAULTS }); // applique en direct sur l'overlay
+  pushHub();                                    // resynchronise la page Réglages
+  return true;
+});
 ipcMain.handle('open-logs-folder', () => { shell.openPath(app.getPath('userData')); return true; });
 ipcMain.handle('force-update-check', () => { updateChecked = false; checkForUpdate(); return true; });
 

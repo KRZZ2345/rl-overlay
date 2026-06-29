@@ -365,6 +365,13 @@
       <button class="dbtn" id="diag-logs">Ouvrir les logs</button>
       <button class="dbtn" id="diag-upd">Vérifier la maj</button>
     </div>
+    <div class="srow">
+      <div class="stext">
+        <div class="stitle">Réinitialiser les réglages</div>
+        <div class="sdesc">Remet l'affichage (halo, série, ±MMR, musique, taille, opacité) par défaut.</div>
+      </div>
+      <button class="dbtn" id="reset-settings">Réinitialiser</button>
+    </div>
   </div>
   <div id="news">
     <span class="nclose" id="news-close">✕ Fermer (Échap)</span>
@@ -584,6 +591,11 @@
   document.getElementById('settings-toggle').addEventListener('click', () => {
     document.body.classList.toggle('show-settings');
     if (document.body.classList.contains('show-settings')) refreshDiag();
+  });
+  document.getElementById('reset-settings').addEventListener('click', async () => {
+    const b = document.getElementById('reset-settings'); const old = b.textContent;
+    if (window.hub.resetSettings) await window.hub.resetSettings(); // pushHub resync les contrôles
+    b.textContent = '✓ Réinitialisé'; setTimeout(() => { b.textContent = old; }, 1500);
   });
   document.getElementById('diag-logs').addEventListener('click', () => window.hub.openLogs && window.hub.openLogs());
   document.getElementById('diag-upd').addEventListener('click', async () => {
