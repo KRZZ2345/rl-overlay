@@ -18,6 +18,16 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.1.4',
+    date: '2026-06-29',
+    title: 'Overlay discret au lancement',
+    items: [
+      { icon: '👁️', text: 'L\'overlay n\'apparaît plus partout au démarrage : il s\'affiche seulement quand Rocket League est au premier plan. Ctrl + Alt + H pour le forcer.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.1.3',
     date: '2026-06-29',
     title: 'Correctif mise à jour (anti-boucle)',
