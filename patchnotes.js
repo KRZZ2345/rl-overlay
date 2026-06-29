@@ -18,6 +18,16 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.2.9',
+    date: '2026-06-29',
+    title: 'Correctif éditeur de thème',
+    items: [
+      { icon: '🐛', text: 'Fermer le sélecteur de couleur (Échap) ne ferme plus l\'éditeur de thème par erreur.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.2.8',
     date: '2026-06-29',
     title: 'Éditeur de thème',
