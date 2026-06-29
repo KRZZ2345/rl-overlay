@@ -94,6 +94,34 @@
 
   .hint { position: fixed; bottom: 8px; right: 12px; color: var(--dim); font-size: 11px; }
 
+  /* Bouton ⚙ (ouvre les Réglages), à gauche de 🎁 */
+  #settings-toggle { position: fixed; top: 12px; right: 86px; width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--card); color: var(--aA); font-size: 14px;
+    cursor: pointer; z-index: 60; box-shadow: 0 4px 14px rgba(0,0,0,0.5); line-height: 28px; text-align: center; }
+  #settings-toggle:hover { border-color: var(--aA); }
+
+  /* Surcouche Réglages (même pattern que #keys / #news) */
+  #settings { position: fixed; inset: 0; z-index: 70; display: none;
+    background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(6px);
+    padding: 40px 48px; overflow: auto; }
+  body.show-settings #settings { display: block; }
+  #settings h2 { font-size: 20px; font-weight: 800; letter-spacing: -.3px; margin-bottom: 2px; }
+  #settings .ssub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+  #settings .sclose { position: absolute; top: 24px; right: 28px; font-size: 13px; color: var(--muted); cursor: pointer; }
+  #settings .sclose:hover { color: var(--txt); }
+  #settings .srow { display: flex; align-items: center; gap: 16px; max-width: 560px;
+    padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); margin-bottom: 12px; }
+  #settings .stext { flex: 1; }
+  #settings .stitle { font-size: 14px; font-weight: 600; color: var(--txt); }
+  #settings .sdesc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  /* Interrupteur */
+  .switch { flex: 0 0 auto; width: 46px; height: 26px; border-radius: 99px; background: var(--line);
+    position: relative; cursor: pointer; transition: background .18s; border: 1px solid var(--line); }
+  .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+    border-radius: 50%; background: var(--muted); transition: transform .18s, background .18s; }
+  .switch.on { background: linear-gradient(100deg, var(--aA), var(--aB)); border-color: transparent; }
+  .switch.on::after { transform: translateX(20px); background: var(--bg); }
+
   /* Bouton 🎁 (ouvre la page Nouveautés), à gauche du bouton ? */
   #news-toggle { position: fixed; top: 12px; right: 50px; width: 30px; height: 30px; border-radius: 50%;
     border: 1px solid var(--line); background: var(--card); color: var(--aA); font-size: 14px;
@@ -208,8 +236,28 @@
     <section class="card" id="tilt" data-f="tilt">⚠ —</section>
   </div>
   <div class="hint">Échap ou Ctrl+Alt+Espace pour fermer</div>
+  <button id="settings-toggle" title="Réglages">⚙</button>
   <button id="news-toggle" title="Nouveautés">🎁</button>
   <button id="keys-toggle" title="Raccourcis clavier">?</button>
+  <div id="settings">
+    <span class="sclose" id="settings-close">✕ Fermer (Échap)</span>
+    <h2>Réglages</h2>
+    <div class="ssub">Réglages de l'affichage de l'overlay en jeu.</div>
+    <div class="srow">
+      <div class="stext">
+        <div class="stitle">Halo du MMR</div>
+        <div class="sdesc">Le nombre de MMR respire avec un halo lumineux. Désactive pour un affichage net.</div>
+      </div>
+      <div class="switch" id="sw-glow" role="switch" tabindex="0"></div>
+    </div>
+    <div class="srow">
+      <div class="stext">
+        <div class="stitle">Affichage de la musique</div>
+        <div class="sdesc">Montre le titre Spotify en cours sur l'overlay. Désactive pour le masquer.</div>
+      </div>
+      <div class="switch" id="sw-music" role="switch" tabindex="0"></div>
+    </div>
+  </div>
   <div id="news">
     <span class="nclose" id="news-close">✕ Fermer (Échap)</span>
     <h2>Nouveautés</h2>
@@ -273,11 +321,15 @@
     if (!vm) return;
     // Thème (Ctrl+Alt+T) poussé via _theme : 0 = :root, 1-5 = body.tN.
     if (vm._theme != null) {
-      for (const c of [...document.body.classList]) if (/^t\d$/.test(c)) document.body.classList.remove(c);
+      for (const c of [...document.body.classList]) if (/^t\d+$/.test(c)) document.body.classList.remove(c);
       if (vm._theme) document.body.classList.add('t' + vm._theme);
     }
     if (vm._showKeys) document.body.classList.add('show-keys'); // auto au 1er lancement
     if (vm._showNews) document.body.classList.add('show-news'); // auto au 1er lancement après update
+    // Réglages : reflète l'état courant des toggles.
+    const swGlow = document.getElementById('sw-glow'), swMusic = document.getElementById('sw-music');
+    if (swGlow && vm._mmrGlow !== undefined) swGlow.classList.toggle('on', vm._mmrGlow !== false);
+    if (swMusic && vm._showMusic !== undefined) swMusic.classList.toggle('on', vm._showMusic !== false);
     document.body.classList.toggle('hot', !!vm.hot);
     document.body.classList.toggle('tilted', !!(vm.heuristics && vm.heuristics.tilt && vm.heuristics.tilt.tilted));
 
@@ -394,18 +446,32 @@
 
   const keysOn = () => document.body.classList.contains('show-keys');
   const newsOn = () => document.body.classList.contains('show-news');
+  const settingsOn = () => document.body.classList.contains('show-settings');
   document.getElementById('keys-toggle').addEventListener('click', () => document.body.classList.toggle('show-keys'));
   document.getElementById('keys-close').addEventListener('click', () => document.body.classList.remove('show-keys'));
   document.getElementById('news-toggle').addEventListener('click', () => document.body.classList.toggle('show-news'));
   document.getElementById('news-close').addEventListener('click', () => document.body.classList.remove('show-news'));
+  document.getElementById('settings-toggle').addEventListener('click', () => document.body.classList.toggle('show-settings'));
+  document.getElementById('settings-close').addEventListener('click', () => document.body.classList.remove('show-settings'));
   // clic sur le fond de la surcouche (pas sur le contenu) -> ferme
   document.getElementById('keys').addEventListener('click', (e) => { if (e.target.id === 'keys') document.body.classList.remove('show-keys'); });
   document.getElementById('news').addEventListener('click', (e) => { if (e.target.id === 'news') document.body.classList.remove('show-news'); });
-  // Échap : ferme d'abord une surcouche ouverte (touches/nouveautés), sinon ferme le Hub.
+  document.getElementById('settings').addEventListener('click', (e) => { if (e.target.id === 'settings') document.body.classList.remove('show-settings'); });
+  // Interrupteurs Réglages : maj optimiste + persiste via IPC (set-overlay-flag).
+  function bindSwitch(id, key) {
+    const el = document.getElementById(id);
+    const toggle = () => { const on = !el.classList.contains('on'); el.classList.toggle('on', on); window.hub.setFlag(key, on); };
+    el.addEventListener('click', toggle);
+    el.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); } });
+  }
+  bindSwitch('sw-glow', 'mmrGlow');
+  bindSwitch('sw-music', 'showMusic');
+  // Échap : ferme d'abord une surcouche ouverte, sinon ferme le Hub.
   window.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     if (keysOn()) { document.body.classList.remove('show-keys'); }
     else if (newsOn()) { document.body.classList.remove('show-news'); }
+    else if (settingsOn()) { document.body.classList.remove('show-settings'); }
     else { window.hub.close(); }
   });
 </script>

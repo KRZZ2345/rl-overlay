@@ -45,13 +45,16 @@
   .arr  { color: color-mix(in srgb, var(--accent) 75%, #fff 0%); font-weight: 800; }
   .rank { font-size: 9px; font-weight: 600; color: #9fb0d8; letter-spacing: 0.2px; }
   .mmr  { font-weight: 800; color: var(--accent); line-height: 1;
-          text-shadow: 0 0 13px color-mix(in srgb, var(--accent) 55%, transparent);
-          animation: mmr-glow 2.4s ease-in-out infinite; }
-  /* Glow ambiant pulsé sur le MMR — couleur accent (suit le thème), toutes les formes. */
+          text-shadow: 0 0 14px color-mix(in srgb, var(--accent) 58%, transparent);
+          animation: mmr-glow 3.6s ease-in-out infinite; }
+  /* Glow ambiant qui "respire" sur le MMR — couleur accent (suit le thème), toutes
+     les formes. Doux et lent ; ne s'éteint jamais (le halo reste toujours présent). */
   @keyframes mmr-glow {
-    0%, 100% { text-shadow: 0 0 8px  color-mix(in srgb, var(--accent) 40%, transparent); }
-    50%      { text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 80%, transparent); }
+    0%, 100% { text-shadow: 0 0 11px color-mix(in srgb, var(--accent) 50%, transparent); }
+    50%      { text-shadow: 0 0 20px color-mix(in srgb, var(--accent) 80%, transparent); }
   }
+  /* Halo désactivé via Réglages du Hub. */
+  body.no-glow .mmr { animation: none; text-shadow: none; }
   @media (prefers-reduced-motion: reduce) { .mmr { animation: none; } }
   .delta { font-weight: 800; font-variant-numeric: tabular-nums; }
   .delta.up { color: #4cf08a; } .delta.down { color: #ff6b6b; } .delta.flat { color: #9fb0d8; }
@@ -502,12 +505,18 @@
       </div>`
   ];
 
-  const THEME_NAMES  = ['Octane', 'Cryo', 'Synthwave', 'Mono', 'Acid', 'Crimson'];
+  // Doit rester aligné sur THEME_COUNT (main.js) et les blocs body.tN (themes.css).
+  const THEME_NAMES  = ['Octane', 'Cryo', 'Synthwave', 'Mono', 'Acid', 'Crimson',
+    'Aurora', 'Sunset', 'Vapor', 'Royal Gold', 'Toxic', 'Ember', 'Forest', 'Coral', 'Indigo'];
   const LAYOUT_NAMES = ['Minimal', 'Compact', 'Compétitif', 'Dashboard', 'Badge', 'Premium', 'Split Wing', 'Cyber', 'Marquee'];
   let curTheme = 0, curLayout = 0;
+  let glowOff = false;   // halo MMR désactivé (Réglages Hub)
+  let showMusic = true;  // ligne musique affichée (Réglages Hub)
 
   function applyThemeClass() {
-    document.body.className = curTheme ? 't' + curTheme : '';
+    // className remplace tout -> on réinjecte aussi no-glow (sinon le toggle
+    // halo serait effacé à chaque changement de thème).
+    document.body.className = [curTheme ? 't' + curTheme : '', glowOff ? 'no-glow' : ''].filter(Boolean).join(' ');
   }
   function applyTheme(idx, withToast) {
     curTheme = ((idx % THEME_NAMES.length) + THEME_NAMES.length) % THEME_NAMES.length;
@@ -593,7 +602,7 @@
 
     // Musique en cours (titre Spotify) : affichée seulement si une piste joue.
     q('np').forEach((e) => {
-      if (s.spotify) { e.textContent = '🎵 ' + s.spotify.replace(' - ', ' – '); e.style.display = 'block'; }
+      if (s.spotify && showMusic) { e.textContent = '🎵 ' + s.spotify.replace(' - ', ' – '); e.style.display = 'block'; }
       else e.style.display = 'none';
     });
 
@@ -776,6 +785,8 @@
   window.rl.onUpdate((d) => {
     if (d.theme !== undefined) applyTheme(d.theme, d.themeToast);
     if (d.layout !== undefined) applyLayout(d.layout, d.layoutToast);
+    if (d.mmrGlow !== undefined) { glowOff = !d.mmrGlow; applyThemeClass(); }
+    if (d.showMusic !== undefined) { showMusic = d.showMusic; paint(); }
     if (d.toast) showToast(d.toast);
     if (d.rankup) rankUp(d.rankup);
     if (d.appear) playAppear();

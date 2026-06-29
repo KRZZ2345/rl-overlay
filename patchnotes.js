@@ -18,6 +18,19 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.1.7',
+    date: '2026-06-29',
+    title: 'Réglages + correctif thèmes',
+    items: [
+      { icon: '🐛', text: 'Correctif : Ctrl + Alt + T donne enfin accès aux 15 thèmes (les 9 nouveaux étaient bloqués).' },
+      { icon: '⚙️', text: 'Nouvelle page Réglages dans le Hub (bouton ⚙).' },
+      { icon: '✨', text: 'Le halo du MMR est plus doux : il respire lentement et ne clignote plus. Désactivable dans les Réglages.' },
+      { icon: '🎵', text: 'L\'affichage de la musique (Spotify) est désactivable dans les Réglages.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.1.6',
     date: '2026-06-29',
     title: '9 nouveaux thèmes + MMR qui brille',

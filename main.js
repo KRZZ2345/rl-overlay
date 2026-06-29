@@ -23,7 +23,7 @@ const DEFAULT_CONFIG = {
   username: '',
   playlist: 'ranked-doubles',
   pollSeconds: 15,
-  overlay: { anchor: 'bottom-right', marginX: 320, marginY: 50, x: 20, y: 20, clickThrough: true, theme: 0, layout: 5, tutoSeen: false, lastSeenVersion: null },
+  overlay: { anchor: 'bottom-right', marginX: 320, marginY: 50, x: 20, y: 20, clickThrough: true, theme: 0, layout: 5, tutoSeen: false, lastSeenVersion: null, mmrGlow: true, showMusic: true },
   // Discord Rich Presence : affiche MMR/rang live sur ton profil Discord.
   // clientId = "Application ID" d'une app creee sur discord.com/developers
   // (1 min, voir README). Vide = desactive. largeImageKey = cle d'un asset
@@ -190,7 +190,8 @@ function createWindow() {
   // Applique le thème mémorisé dès que la page est prête.
   win.webContents.on('did-finish-load', () => {
     const o = loadConfig().overlay;
-    sendUpdate({ theme: (o.theme || 0) % THEME_COUNT, layout: o.layout || 0 });
+    sendUpdate({ theme: (o.theme || 0) % THEME_COUNT, layout: o.layout || 0,
+      mmrGlow: o.mmrGlow !== false, showMusic: o.showMusic !== false });
   });
   win.loadFile('index.html');
 }
@@ -369,8 +370,9 @@ let showNewsOnce = false; // arme l'affichage de la page Nouveautés (1er lancem
 
 function pushHub() {
   if (hubWin && !hubWin.isDestroyed() && lastVm) {
-    const theme = (loadConfig().overlay.theme || 0) % THEME_COUNT;
-    const payload = { ...lastVm, _theme: theme };
+    const o = loadConfig().overlay;
+    const theme = (o.theme || 0) % THEME_COUNT;
+    const payload = { ...lastVm, _theme: theme, _mmrGlow: o.mmrGlow !== false, _showMusic: o.showMusic !== false };
     if (showKeysOnce) { payload._showKeys = true; showKeysOnce = false; }
     if (showNewsOnce) { payload._showNews = true; showNewsOnce = false; }
     hubWin.webContents.send('hub-update', payload);
@@ -452,6 +454,18 @@ function resetCurrent() {
 // IPC : reset de session, déclenché par un raccourci.
 ipcMain.handle('reset-session', () => resetCurrent());
 ipcMain.handle('hub-close', () => closeHub());
+
+// IPC : toggle d'un réglage overlay depuis la page Réglages du Hub.
+// Clés autorisées : mmrGlow (halo MMR), showMusic (ligne musique).
+ipcMain.handle('set-overlay-flag', (_e, key, value) => {
+  if (key !== 'mmrGlow' && key !== 'showMusic') return false;
+  const cfg = loadConfig();
+  cfg.overlay[key] = !!value;
+  saveConfig(cfg);
+  sendUpdate({ [key]: !!value }); // applique en direct sur l'overlay
+  pushHub();                       // garde la page Réglages en phase
+  return true;
+});
 
 ipcMain.handle('get-setup-theme', () => (loadConfig().overlay.theme || 0));
 
