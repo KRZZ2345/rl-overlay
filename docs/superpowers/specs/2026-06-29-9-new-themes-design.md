@@ -51,7 +51,18 @@ Seul changement. Le cycle Ctrl+Alt+T et le modulo Hub/overlay suivent automatiqu
 - CSS de la mini-carte ajouté au `<style>` de hub.html (préfixe `.tp-`), scoping
   par variables inline pour ne pas polluer le thème du Hub.
 
+### 4. `index.html` — glow ambiant pulsé sur le MMR (toutes les formes)
+Toutes les formes (f0–f4, layout-wing, f-marquee, f5) utilisent la classe `.mmr`
+(seule la taille/couleur est surchargée par forme). Une seule animation suffit.
+- `@keyframes mmr-glow` : pulse le `text-shadow` accent entre ~8px/40% et ~18px/80%.
+- `.mmr { animation: mmr-glow 2.4s ease-in-out infinite; }` (le `text-shadow`
+  statique actuel reste comme état de repos).
+- Respecte `@media (prefers-reduced-motion: reduce)` : `animation: none` sur `.mmr`
+  (le glow fixe demeure), cohérent avec le bloc reduced-motion existant du marquee.
+- Couleur = `var(--accent)` → suit automatiquement le thème (dont les 9 nouveaux).
+
 ## Hors-scope (YAGNI)
+- Pas de flash/pop réactif au changement de MMR (choix : glow ambiant seul).
 - Pas de noms de thèmes affichés dans l'overlay en jeu (juste l'index, comme aujourd'hui).
 - Pas de sélecteur de thème cliquable dans le Hub (le cycle clavier suffit).
 - Pas de suppression des 6 thèmes existants.
