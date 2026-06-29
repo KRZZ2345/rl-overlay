@@ -18,6 +18,17 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.1.5',
+    date: '2026-06-29',
+    title: 'Mises à jour automatiques',
+    items: [
+      { icon: '⚡', text: 'Les mises à jour s\'installent et se relancent toutes seules, hors partie. Plus besoin de fermer/relancer à la main.' },
+      { icon: '🎮', text: 'Jamais de coupure en plein match : si tu joues, l\'update attend que tu quittes la partie.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.1.4',
     date: '2026-06-29',
     title: 'Overlay discret au lancement',

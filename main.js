@@ -413,6 +413,7 @@ function openHub() {
   hubWin.on('closed', () => {
     hubWin = null;
     if (forceShow) setOverlayVisible(true); // restaure si affichage forcé ; sinon le watcher recale
+    maybeAutoApplyUpdate(); // Hub fermé : si update prêt et hors-jeu, on applique
   });
   hubWin.loadFile('hub.html');
 }
@@ -539,8 +540,9 @@ function logFocus(msg) {
   } catch {}
 }
 
-// ---- Auto-update (check au 1er poll, staging en fond, swap au prochain boot) ----
+// ---- Auto-update (check au boot, staging en fond, swap auto hors-jeu) ----
 let updateChecked = false;
+let updateStaged = false; // un update est téléchargé et prêt à être appliqué
 
 function extractZip(zip, dest) {
   return new Promise((resolve, reject) => {
@@ -587,9 +589,21 @@ async function checkForUpdate() {
     const asset = pickAsset(rel, 'RL-Overlay-win-x64.zip');
     if (!asset) return;
     await downloadAndStage(asset.browser_download_url, rel.tag_name.replace(/^v/i, ''));
+    updateStaged = true;
+    maybeAutoApplyUpdate(); // applique tout de suite si on est hors-jeu
   } catch (e) {
     logFocus('checkForUpdate: ' + e.message);
   }
+}
+
+// Applique un update prêt SEULEMENT hors-jeu (overlay caché) et hors Hub :
+// l'app se ferme et le helper relance la nouvelle version. En jeu, on attend
+// que l'utilisateur quitte la partie (rappel depuis setOverlayVisible).
+function maybeAutoApplyUpdate() {
+  if (!updateStaged) return;
+  if (overlayVisible) return;                      // en partie -> on attend
+  if (hubWin && !hubWin.isDestroyed()) return;     // Hub ouvert -> on attend sa fermeture
+  if (applyPendingUpdate()) { updateStaged = false; app.quit(); }
 }
 
 function setOverlayVisible(v) {
@@ -608,6 +622,7 @@ function setOverlayVisible(v) {
     sessionStart = 0; // hors jeu : on arrête le chrono
     stopPolling();        // stoppe poll + ferme la fenêtre Chromium = ~0 perf
     clearPresence();      // hors jeu : on retire l'activité Discord
+    maybeAutoApplyUpdate(); // on vient de quitter le jeu -> bon moment pour appliquer un update prêt
   }
 }
 
