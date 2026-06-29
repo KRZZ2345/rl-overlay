@@ -18,6 +18,16 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.2.7',
+    date: '2026-06-29',
+    title: 'OBS = ton overlay exact (forme + thème)',
+    items: [
+      { icon: '📺', text: 'La source OBS affiche désormais ton overlay RÉEL : la forme (Ctrl+Alt+F) ET le thème (Ctrl+Alt+T) que tu as choisis, au lieu d\'un scorebug générique. Copie l\'URL dans Réglages → Diagnostic.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.2.6',
     date: '2026-06-29',
     title: 'Source OBS aux couleurs de ton thème',

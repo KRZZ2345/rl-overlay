@@ -919,7 +919,9 @@ function obsState() {
     mmrLive: lastLiveMmr,
     session: summarize(matches, today()),
     live: (lastLive && lastLive.inMatch) ? lastLive : null,
-    theme: (loadConfig().overlay.theme || 0) % THEME_COUNT, // applique le thème choisi
+    theme: (loadConfig().overlay.theme || 0) % THEME_COUNT, // thème choisi
+    layout: (loadConfig().overlay.layout || 0) % LAYOUT_COUNT, // forme choisie
+    rankIcon: vm.rankIcon || (vm.rank && vm.rank.icon) || null,
   };
 }
 function startObsServerOnce() {

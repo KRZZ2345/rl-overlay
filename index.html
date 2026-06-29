@@ -531,7 +531,11 @@
     if (withToast) showToast('🎨 ' + THEME_NAMES[curTheme]);
   }
   function applyLayout(idx, withToast) {
-    curLayout = ((idx % LAYOUT_NAMES.length) + LAYOUT_NAMES.length) % LAYOUT_NAMES.length;
+    const next = ((idx % LAYOUT_NAMES.length) + LAYOUT_NAMES.length) % LAYOUT_NAMES.length;
+    // Évite de reconstruire (et relancer l'anim) si la forme n'a pas changé
+    // (sinon en mode OBS le poll 1s recréerait la forme en continu).
+    if (next === curLayout && $('stage').firstElementChild) { paint(); return; }
+    curLayout = next;
     renderForm();
     if (withToast) showToast('🧩 ' + LAYOUT_NAMES[curLayout]);
   }
@@ -792,7 +796,7 @@
   // Première forme avant le 1er message (évite un stage vide).
   renderForm();
 
-  window.rl.onUpdate((d) => {
+  const __onUpdate = (d) => {
     if (d.theme !== undefined) applyTheme(d.theme, d.themeToast);
     if (d.layout !== undefined) applyLayout(d.layout, d.layoutToast);
     if (d.mmrGlow !== undefined) { glowOff = !d.mmrGlow; applyThemeClass(); }
@@ -840,7 +844,26 @@
     if (d.hot !== undefined) state.hot = d.hot;
 
     paint();
-  });
+  };
+
+  if (window.rl && window.rl.onUpdate) {
+    window.rl.onUpdate(__onUpdate); // overlay en jeu (Electron, IPC)
+  } else {
+    // Mode OBS : page servie en HTTP -> on poll /state et on mappe vers le format
+    // d'update. Affiche la MÊME forme + thème que l'overlay in-game.
+    const pollObs = async () => {
+      let s; try { s = await (await fetch('/state', { cache: 'no-store' })).json(); } catch { return; }
+      const rk = s.rank || {}, ses = s.session || {};
+      const mmr = (s.mmrLive && s.mmrLive.mmr != null) ? s.mmrLive.mmr : s.mmr;
+      __onUpdate({
+        theme: s.theme || 0, layout: s.layout || 0,
+        playlist: rk.playlist, rankTier: rk.tier, rankDiv: rk.division, rankIcon: s.rankIcon || undefined,
+        mmr: (mmr != null ? mmr : undefined),
+        wins: ses.wins || 0, losses: ses.losses || 0, streak: ses.streak || 0, gameStreak: ses.streak || 0,
+      });
+    };
+    pollObs(); setInterval(pollObs, 1000);
+  }
 </script>
 </body>
 </html>
