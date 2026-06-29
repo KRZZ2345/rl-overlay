@@ -18,6 +18,19 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.2.0',
+    date: '2026-06-29',
+    title: 'Stats live du match + Historique',
+    items: [
+      { icon: '🔴', text: 'Stats du match EN DIRECT via la Stats API officielle de Rocket League (sans injection, EAC-safe) : score, boost, buts/passes/tirs/arrêts dans le Hub. Activée automatiquement au 1er lancement (redémarre RL une fois).' },
+      { icon: '📈', text: 'Historique des matchs : W/L du jour, win-rate, série, courbe MMR, et détail par match (boost moyen, % en l\'air, touches, démos…).' },
+      { icon: '⚙️', text: 'Page Réglages enrichie : taille, opacité, halo MMR, série, écart de MMR, musique, réinitialiser + diagnostic.' },
+      { icon: '🔧', text: 'Mises à jour plus fiables et lecture du journal de RL même si Documents est sur OneDrive.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.1.11',
     date: '2026-06-29',
     title: 'MMR post-match plus fiable',

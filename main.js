@@ -553,6 +553,8 @@ ipcMain.handle('save-setup', (_e, data) => {
   if (firstRun) {
     cfg.overlay.tutoSeen = true; saveConfig(cfg); // page touches : auto une seule fois
     showKeysOnce = true;
+    // Active la Stats API officielle (stats live) dès le 1er lancement, best-effort.
+    try { const r = enableStatsApi(); logFocus('setup: enableStatsApi ' + JSON.stringify(r)); } catch (e) { logFocus('setup enableStatsApi: ' + e.message); }
     openHub(); // pushHub() est appelé au did-finish-load du Hub -> envoie _showKeys
   }
   return true;
