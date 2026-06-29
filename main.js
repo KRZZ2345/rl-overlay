@@ -753,11 +753,25 @@ let matchBurst = []; // timers de la rafale de refresh post-match
 
 function clearMatchBurst() { matchBurst.forEach(clearTimeout); matchBurst = []; }
 
-// Fin de match détectée -> on rafraîchit le tracker tout de suite, puis en rafale
-// (le tracker.network a son propre délai) jusqu'à capter la maj MMR/W-L.
+// Fin de match détectée -> on re-poll le tracker jusqu'à ce que le MMR de la
+// playlist suivie CHANGE (le tracker.network a son propre délai après un match,
+// de quelques secondes à ~2 min). On logge chaque essai pour diagnostiquer
+// "en retard" vs "jamais". S'arrête au 1er changement ou après ~3 min.
 function refreshAfterMatch() {
   clearMatchBurst();
-  for (const ms of [0, 6000, 20000, 45000]) matchBurst.push(setTimeout(() => poll(true), ms));
+  const sel = loadConfig().playlist;
+  const before = mmrRef(sel).last;
+  let tries = 0;
+  const tick = async () => {
+    tries++;
+    await poll(true);
+    const now = mmrRef(sel).last;
+    logFocus(`post-match refresh #${tries}: mmr ${before} -> ${now}`);
+    if (now !== before && now != null) { logFocus('post-match: maj MMR détectée'); return; }
+    if (tries < 18) matchBurst.push(setTimeout(tick, 10000)); // ~3 min de fenêtre
+    else logFocus('post-match: MMR inchangé après ' + tries + ' essais (tracker lag ou même MMR)');
+  };
+  matchBurst.push(setTimeout(tick, 1500));
 }
 
 function startMatchLogWatcher() {

@@ -18,6 +18,16 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.1.11',
+    date: '2026-06-29',
+    title: 'MMR post-match plus fiable',
+    items: [
+      { icon: '🔁', text: 'Après un match, l\'overlay re-vérifie le MMR jusqu\'à ce qu\'il change (le site de stats a souvent quelques secondes à 2 min de retard) — la maj arrive dès qu\'elle est dispo.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.1.10',
     date: '2026-06-29',
     title: 'Mise à jour anti-blocage',
