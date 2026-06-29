@@ -9,5 +9,6 @@ contextBridge.exposeInMainWorld('hub', {
   matches: () => ipcRenderer.invoke('get-matches'),
   resetSettings: () => ipcRenderer.invoke('reset-overlay-settings'),
   openLogs: () => ipcRenderer.invoke('open-logs-folder'),
-  forceUpdateCheck: () => ipcRenderer.invoke('force-update-check')
+  forceUpdateCheck: () => ipcRenderer.invoke('force-update-check'),
+  enableStats: () => ipcRenderer.invoke('enable-stats-api')
 });

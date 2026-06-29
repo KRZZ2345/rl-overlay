@@ -367,6 +367,13 @@
     </div>
     <div class="srow">
       <div class="stext">
+        <div class="stitle">Stats live du match</div>
+        <div class="sdesc">Active la Stats API officielle de Rocket League (sans injection). Redémarre RL ensuite.</div>
+      </div>
+      <button class="dbtn" id="enable-stats">Activer</button>
+    </div>
+    <div class="srow">
+      <div class="stext">
         <div class="stitle">Réinitialiser les réglages</div>
         <div class="sdesc">Remet l'affichage (halo, série, ±MMR, musique, taille, opacité) par défaut.</div>
       </div>
@@ -596,6 +603,15 @@
     const b = document.getElementById('reset-settings'); const old = b.textContent;
     if (window.hub.resetSettings) await window.hub.resetSettings(); // pushHub resync les contrôles
     b.textContent = '✓ Réinitialisé'; setTimeout(() => { b.textContent = old; }, 1500);
+  });
+  document.getElementById('enable-stats').addEventListener('click', async () => {
+    const b = document.getElementById('enable-stats'); const old = b.textContent; b.textContent = '…';
+    let r = {}; try { r = await window.hub.enableStats(); } catch {}
+    const msg = r.ok ? (r.alreadyOn ? '✓ Déjà actif — redémarre RL' : '✓ Activé — redémarre RL')
+      : r.error === 'need-admin' ? '⚠ Lance l\'app en admin'
+      : r.error === 'install-not-found' ? '⚠ RL introuvable'
+      : '⚠ Échec';
+    b.textContent = msg; setTimeout(() => { b.textContent = old; }, 4000);
   });
   document.getElementById('diag-logs').addEventListener('click', () => window.hub.openLogs && window.hub.openLogs());
   document.getElementById('diag-upd').addEventListener('click', async () => {

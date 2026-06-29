@@ -10,6 +10,7 @@ const { buildViewModel } = require('./lib/viewmodel');
 const { isNewer, pickAsset, repoSlug, compareVersions } = require('./lib/updater');
 const { startLogWatcher, defaultLogPath } = require('./rllog');
 const { startStatsApi } = require('./statsapi');
+const { enableStatsApi, findRocketLeague } = require('./lib/rlinstall');
 const { makeEntry, appendMatch, summarize } = require('./lib/matchlog');
 const { sparkline } = require('./lib/sparkline');
 
@@ -498,6 +499,9 @@ ipcMain.handle('reset-overlay-settings', () => {
 });
 ipcMain.handle('open-logs-folder', () => { shell.openPath(app.getPath('userData')); return true; });
 ipcMain.handle('force-update-check', () => { updateChecked = false; checkForUpdate(); return true; });
+// Active la Stats API officielle (écrit DefaultStatsAPI.ini). À appeler au setup
+// et via un bouton Réglages. Renvoie le détail (ok / need-admin / install-not-found).
+ipcMain.handle('enable-stats-api', () => enableStatsApi());
 
 // IPC : réglage overlay depuis la page Réglages du Hub.
 // Booléens (toggles) et numériques (sliders, bornés). Tout autre clé -> ignorée.
