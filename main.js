@@ -8,6 +8,7 @@ const { loadHistory, saveHistory } = require('./lib/history-store');
 const { recordSample } = require('./lib/history');
 const { buildViewModel } = require('./lib/viewmodel');
 const { isNewer, pickAsset, repoSlug, compareVersions } = require('./lib/updater');
+const { startLogWatcher } = require('./rllog');
 
 // Nom du process de Rocket League (sans .exe) tel que renvoyé par Get-Process.
 const RL_PROCESS = 'RocketLeague';
@@ -247,9 +248,9 @@ let polling = false;
 
 // Boucle de poll : on récupère TOUS les MMR + stats carrière.
 // W/L = total du jour (tous modes). On affiche le MMR de la playlist choisie.
-async function poll() {
+async function poll(force) {
   if (polling) return;
-  if (!overlayVisible) return; // pas en jeu = pas de scraping (perf)
+  if (!overlayVisible && !force) return; // pas en jeu = pas de scraping (perf) ; force = déclenché par le log (fin de match)
   polling = true;
   try {
     const cfg = loadConfig();
@@ -736,6 +737,33 @@ while ($true) {
   });
 }
 
+// --- Live via log RL (lecture seule, anticheat-safe) ---
+let logWatcher = null;
+let matchBurst = []; // timers de la rafale de refresh post-match
+
+function clearMatchBurst() { matchBurst.forEach(clearTimeout); matchBurst = []; }
+
+// Fin de match détectée -> on rafraîchit le tracker tout de suite, puis en rafale
+// (le tracker.network a son propre délai) jusqu'à capter la maj MMR/W-L.
+function refreshAfterMatch() {
+  clearMatchBurst();
+  for (const ms of [0, 6000, 20000, 45000]) matchBurst.push(setTimeout(() => poll(true), ms));
+}
+
+function startMatchLogWatcher() {
+  if (logWatcher) return;
+  logWatcher = startLogWatcher({
+    logPath: loadConfig().overlay.logPath || undefined,
+    log: logFocus,
+    onMatchStart: (id, key) => {
+      clearMatchBurst(); // nouveau match -> annule la rafale précédente
+      logFocus(`log: match start playlist=${id}${key ? ' (' + key + ')' : ''}`);
+      if (key) switchPlaylist(key); // suit la playlist réellement jouée
+    },
+    onMatchEnd: () => { logFocus('log: match end -> refresh MMR'); refreshAfterMatch(); },
+  });
+}
+
 // Démarre l'overlay + le polling + les raccourcis. Idempotent (les raccourcis
 // ne sont enregistrés qu'une fois).
 function startOverlay() {
@@ -745,6 +773,7 @@ function startOverlay() {
   // Le polling démarre/s'arrête avec la visibilité (startFocusWatcher ->
   // setOverlayVisible -> startPolling). Aucun scraping tant que pas en jeu.
   startFocusWatcher();
+  startMatchLogWatcher();
 
   globalShortcut.register('CommandOrControl+Alt+R', () => resetCurrent());
 
@@ -928,6 +957,8 @@ function maybeShowPatchNotes() {
 
 app.on('will-quit', () => {
   globalShortcut.unregisterAll();
+  clearMatchBurst();
+  if (logWatcher) { try { logWatcher.stop(); } catch {} }
   if (focusProc) { try { focusProc.kill(); } catch {} }
   if (rpc) { try { rpc.close(); } catch {} }
 });

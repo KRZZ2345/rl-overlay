@@ -18,6 +18,18 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.1.9',
+    date: '2026-06-29',
+    title: 'MMR en direct (sans injection)',
+    items: [
+      { icon: '⚡', text: 'Le MMR et le bilan W-L se mettent à jour quasi instantanément en fin de match (au lieu d\'attendre).' },
+      { icon: '🎯', text: 'La playlist suivie s\'adapte automatiquement à celle que tu joues.' },
+      { icon: '🛡️', text: 'Lecture seule du journal de Rocket League : aucune injection, sans risque pour ton compte.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.1.8',
     date: '2026-06-29',
     title: 'Animations fluides + maj plus fiable',

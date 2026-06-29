@@ -1,0 +1,49 @@
+// test/rllog.test.js
+const { test } = require('node:test');
+const assert = require('node:assert');
+const { parseLine, PLAYLIST_IDS } = require('../rllog');
+
+// Collecteur d'événements pour parseLine.
+function collect(lines) {
+  const events = [];
+  const emit = {
+    matchStart: (id) => events.push({ type: 'start', id }),
+    matchEnd: () => events.push({ type: 'end' }),
+  };
+  for (const l of lines) parseLine(l, emit);
+  return events;
+}
+
+test('détecte le début de match via StartMatchmaking + playlist id', () => {
+  const e = collect(['[3201.84] Matchmaking: StartMatchmaking at 2026-06-29 in EU9 for playlists 11 on game server ']);
+  assert.deepStrictEqual(e, [{ type: 'start', id: 11 }]);
+});
+
+test('détecte le début via HandleServerReserved (Reservation Playlist=)', () => {
+  const e = collect(['[3206.25] Party: HandleServerReserved (Reservation=(ServerName="EU9-x",Playlist=13,Region="EU"))']);
+  assert.deepStrictEqual(e, [{ type: 'start', id: 13 }]);
+});
+
+test('détecte la fin de match via WinnerMenu et EndGameMenu', () => {
+  const e = collect([
+    '[0669.85] Log: Fully load package: ..\\..\\TAGame\\CookedPCConsole\\GFX_WinnerMenu_SF.upk',
+    '[3210.88] Log: Fully load package: ..\\..\\TAGame\\CookedPCConsole\\GFX_EndGameMenu_SF.upk',
+  ]);
+  assert.deepStrictEqual(e, [{ type: 'end' }, { type: 'end' }]);
+});
+
+test('ignore les lignes sans intérêt', () => {
+  const e = collect([
+    '[3201.84] Matchmaking: SecondsSearching=(1) bIgnoreSkill=(False)',
+    '\tFunction TAGame.ProductAsset_GoalExplosion_TA:GetExplosionFXActorForPRI',
+    '[1731.30] Matchmaking: Post-divide PartyLeaderMMR: 31.3883',
+  ]);
+  assert.deepStrictEqual(e, []);
+});
+
+test('map des ids de playlist classées', () => {
+  assert.strictEqual(PLAYLIST_IDS[10], 'ranked-duel');
+  assert.strictEqual(PLAYLIST_IDS[11], 'ranked-doubles');
+  assert.strictEqual(PLAYLIST_IDS[13], 'ranked-standard');
+  assert.strictEqual(PLAYLIST_IDS[1], undefined); // casual non suivi
+});
