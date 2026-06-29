@@ -93,6 +93,38 @@
   #keys .kclose:hover { color: var(--txt); }
 
   .hint { position: fixed; bottom: 8px; right: 12px; color: var(--dim); font-size: 11px; }
+
+  /* Bouton 🎁 (ouvre la page Nouveautés), à gauche du bouton ? */
+  #news-toggle { position: fixed; top: 12px; right: 50px; width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--card); color: var(--aA); font-size: 14px;
+    cursor: pointer; z-index: 60; box-shadow: 0 4px 14px rgba(0,0,0,0.5); line-height: 28px; text-align: center; }
+  #news-toggle:hover { border-color: var(--aA); }
+
+  /* Surcouche page Nouveautés (même pattern que #keys) */
+  #news { position: fixed; inset: 0; z-index: 70; display: none;
+    background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(6px);
+    padding: 40px 48px; overflow: auto; }
+  body.show-news #news { display: block; }
+  #news h2 { font-size: 20px; font-weight: 800; letter-spacing: -.3px; margin-bottom: 2px; }
+  #news .nsub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+  #news .nclose { position: absolute; top: 24px; right: 28px; font-size: 13px; color: var(--muted); cursor: pointer; }
+  #news .nclose:hover { color: var(--txt); }
+  #news .release { max-width: 820px; margin: 0 0 26px; }
+  #news .rhead { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+  #news .rver { font-size: 15px; font-weight: 800; color: var(--aA); }
+  #news .rtitle { font-size: 15px; font-weight: 600; }
+  #news .rdate { margin-left: auto; font-size: 12px; color: var(--dim); }
+  #news .nlist { margin: 0; padding: 0; list-style: none; }
+  #news .nlist li { display: flex; gap: 10px; padding: 6px 0; font-size: 14px; color: var(--txt);
+    line-height: 1.4; }
+  #news .nlist li .ni { flex: 0 0 auto; }
+  #news .swatches { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  #news .sw { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted);
+    background: var(--card); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px 5px 6px; }
+  #news .sw i { width: 18px; height: 18px; border-radius: 50%; display: inline-block;
+    box-shadow: 0 0 8px rgba(255,255,255,.12); }
+  #news .shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin-top: 14px; }
+  #news .shots img { width: 100%; border-radius: 10px; border: 1px solid var(--line); display: block; }
 </style>
 </head>
 <body>
@@ -154,7 +186,14 @@
     <section class="card" id="tilt" data-f="tilt">⚠ —</section>
   </div>
   <div class="hint">Échap ou Ctrl+Alt+Espace pour fermer</div>
+  <button id="news-toggle" title="Nouveautés">🎁</button>
   <button id="keys-toggle" title="Raccourcis clavier">?</button>
+  <div id="news">
+    <span class="nclose" id="news-close">✕ Fermer (Échap)</span>
+    <h2>Nouveautés</h2>
+    <div class="nsub">Ce qui a changé dans cette version et les précédentes.</div>
+    <div id="news-body"></div>
+  </div>
   <div id="keys">
     <span class="kclose" id="keys-close">✕ Fermer (Échap)</span>
     <h2>Raccourcis</h2>
@@ -185,6 +224,7 @@
     </div>
   </div>
 
+<script src="patchnotes.js"></script>
 <script>
   const $ = (f) => document.querySelector(`[data-f="${f}"]`);
   const txt = (f, v) => { const el = $(f); if (el) el.textContent = v; };
@@ -215,6 +255,7 @@
       if (vm._theme) document.body.classList.add('t' + vm._theme);
     }
     if (vm._showKeys) document.body.classList.add('show-keys'); // auto au 1er lancement
+    if (vm._showNews) document.body.classList.add('show-news'); // auto au 1er lancement après update
     document.body.classList.toggle('hot', !!vm.hot);
     document.body.classList.toggle('tilted', !!(vm.heuristics && vm.heuristics.tilt && vm.heuristics.tilt.tilted));
 
@@ -290,15 +331,45 @@
 
   window.hub.onUpdate(paint);
 
+  // --- Page Nouveautés (rendue une fois depuis window.PATCH_NOTES) ---
+  function renderNews() {
+    const body = document.getElementById('news-body');
+    const notes = window.PATCH_NOTES || [];
+    if (!body) return;
+    if (notes.length === 0) { body.innerHTML = '<div class="label">Aucune nouveauté.</div>'; return; }
+    body.innerHTML = notes.map((n) => {
+      const items = (n.items || []).map((it) =>
+        `<li><span class="ni">${it.icon || '•'}</span><span>${it.text || ''}</span></li>`).join('');
+      const swatches = (n.themes && n.themes.length)
+        ? `<div class="swatches">${n.themes.map((t) =>
+            `<span class="sw"><i style="background:linear-gradient(135deg, ${t.a}, ${t.b})"></i>${t.name}</span>`).join('')}</div>`
+        : '';
+      const shots = (n.images && n.images.length)
+        ? `<div class="shots">${n.images.map((src) => `<img src="${src}" alt="" />`).join('')}</div>`
+        : '';
+      return `<div class="release">
+        <div class="rhead"><span class="rver">v${n.version}</span>
+          <span class="rtitle">${n.title || ''}</span>
+          <span class="rdate">${n.date || ''}</span></div>
+        <ul class="nlist">${items}</ul>${swatches}${shots}</div>`;
+    }).join('');
+  }
+  renderNews();
+
   const keysOn = () => document.body.classList.contains('show-keys');
+  const newsOn = () => document.body.classList.contains('show-news');
   document.getElementById('keys-toggle').addEventListener('click', () => document.body.classList.toggle('show-keys'));
   document.getElementById('keys-close').addEventListener('click', () => document.body.classList.remove('show-keys'));
+  document.getElementById('news-toggle').addEventListener('click', () => document.body.classList.toggle('show-news'));
+  document.getElementById('news-close').addEventListener('click', () => document.body.classList.remove('show-news'));
   // clic sur le fond de la surcouche (pas sur le contenu) -> ferme
   document.getElementById('keys').addEventListener('click', (e) => { if (e.target.id === 'keys') document.body.classList.remove('show-keys'); });
-  // Échap : ferme d'abord la page touches si ouverte, sinon ferme le Hub.
+  document.getElementById('news').addEventListener('click', (e) => { if (e.target.id === 'news') document.body.classList.remove('show-news'); });
+  // Échap : ferme d'abord une surcouche ouverte (touches/nouveautés), sinon ferme le Hub.
   window.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     if (keysOn()) { document.body.classList.remove('show-keys'); }
+    else if (newsOn()) { document.body.classList.remove('show-news'); }
     else { window.hub.close(); }
   });
 </script>

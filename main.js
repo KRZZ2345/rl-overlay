@@ -23,7 +23,7 @@ const DEFAULT_CONFIG = {
   username: '',
   playlist: 'ranked-doubles',
   pollSeconds: 15,
-  overlay: { anchor: 'bottom-right', marginX: 320, marginY: 50, x: 20, y: 20, clickThrough: true, theme: 0, layout: 5, tutoSeen: false },
+  overlay: { anchor: 'bottom-right', marginX: 320, marginY: 50, x: 20, y: 20, clickThrough: true, theme: 0, layout: 5, tutoSeen: false, lastSeenVersion: null },
   // Discord Rich Presence : affiche MMR/rang live sur ton profil Discord.
   // clientId = "Application ID" d'une app creee sur discord.com/developers
   // (1 min, voir README). Vide = desactive. largeImageKey = cle d'un asset
@@ -365,12 +365,14 @@ function sendUpdate(data) {
 
 // --- Hub plein écran (lazy, lecture seule) ---
 let showKeysOnce = false; // arme l'affichage de la page touches au prochain push Hub
+let showNewsOnce = false; // arme l'affichage de la page Nouveautés (1er lancement après update)
 
 function pushHub() {
   if (hubWin && !hubWin.isDestroyed() && lastVm) {
     const theme = (loadConfig().overlay.theme || 0) % THEME_COUNT;
     const payload = { ...lastVm, _theme: theme };
     if (showKeysOnce) { payload._showKeys = true; showKeysOnce = false; }
+    if (showNewsOnce) { payload._showNews = true; showNewsOnce = false; }
     hubWin.webContents.send('hub-update', payload);
   }
 }
@@ -396,9 +398,18 @@ function openHub() {
   });
   hubWin.center();
   setOverlayVisible(false); // cache l'overlay tant que le Hub est ouvert
-  hubWin.once('ready-to-show', () => { hubWin.show(); hubWin.focus(); });
+  let canAutoClose = false; // ignore le blur transitoire pendant l'apparition
+  hubWin.once('ready-to-show', () => {
+    hubWin.show(); hubWin.focus();
+    setTimeout(() => { canAutoClose = true; }, 500);
+  });
   // Pousse le dernier view-model connu dès que la page est prête (jamais de vide).
   hubWin.webContents.on('did-finish-load', () => pushHub());
+  // Auto-fermeture quand l'utilisateur ne regarde plus le Hub (alt-tab/clic ailleurs).
+  // Changer de page DANS le Hub ne déclenche pas de blur (même fenêtre) -> le Hub
+  // reste ouvert ; ne se ferme que si on quitte la fenêtre. Évite l'overlay bloqué
+  // caché quand le Hub reste ouvert en arrière-plan.
+  hubWin.on('blur', () => { if (canAutoClose) closeHub(); });
   hubWin.on('closed', () => {
     hubWin = null;
     if (forceShow) setOverlayVisible(true); // restaure si affichage forcé ; sinon le watcher recale
@@ -836,7 +847,25 @@ app.whenReady().then(() => {
   // 1er lancement (pas de pseudo) -> écran de config, sinon overlay direct.
   if (isConfigured()) startOverlay();
   else createSetupWindow();
+  maybeShowPatchNotes();
 });
+
+// Affiche la page Nouveautés UNIQUEMENT au 1er lancement après un update :
+// on compare la version vue la dernière fois (overlay.lastSeenVersion) à la
+// version courante. Différentes -> on arme la page et on ouvre le Hub.
+// 1er install (lastSeenVersion null) -> on enregistre seulement, pas d'affichage
+// (la page touches via tutoSeen gère le 1er install). Hors config -> on attend.
+function maybeShowPatchNotes() {
+  const cfg = loadConfig();
+  if (!isConfigured()) return; // setup en cours : on verra à la prochaine ouverture
+  const cur = app.getVersion();
+  const seen = cfg.overlay.lastSeenVersion;
+  if (seen && seen !== cur) {
+    showNewsOnce = true;
+    openHub(); // pushHub() au did-finish-load envoie _showNews
+  }
+  if (seen !== cur) { cfg.overlay.lastSeenVersion = cur; saveConfig(cfg); }
+}
 
 app.on('will-quit', () => {
   globalShortcut.unregisterAll();
