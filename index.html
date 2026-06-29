@@ -518,6 +518,7 @@
   let glowOff = false;   // halo MMR désactivé (Réglages Hub)
   let showMusic = true;  // ligne musique affichée (Réglages Hub)
   let showStreak = true; // série affichée (Réglages Hub)
+  let showDelta = true;  // ±MMR session affiché (Réglages Hub)
 
   function applyThemeClass() {
     // className remplace tout -> on réinjecte aussi no-glow (sinon le toggle
@@ -586,6 +587,7 @@
     // Delta MMR de session (signé + coloré).
     const delta = (s.mmr != null && s.startMmr != null) ? s.mmr - s.startMmr : 0;
     q('delta').forEach((e) => {
+      e.style.display = showDelta ? '' : 'none';
       e.textContent = (delta > 0 ? '▲' : delta < 0 ? '▼' : '±') + Math.abs(delta);
       e.classList.remove('up', 'down', 'flat');
       e.classList.add(delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat');
@@ -798,6 +800,7 @@
     if (d.overlayScale !== undefined) document.documentElement.style.setProperty('--ovScale', (d.overlayScale / 100).toFixed(3));
     if (d.overlayOpacity !== undefined) document.documentElement.style.setProperty('--ovOpacity', (d.overlayOpacity / 100).toFixed(3));
     if (d.showStreak !== undefined) { showStreak = d.showStreak; paint(); }
+    if (d.showDelta !== undefined) { showDelta = d.showDelta; paint(); }
     if (d.toast) showToast(d.toast);
     if (d.rankup) rankUp(d.rankup);
     if (d.appear) playAppear();

@@ -334,6 +334,13 @@
     </div>
     <div class="srow">
       <div class="stext">
+        <div class="stitle">Écart de MMR (±)</div>
+        <div class="sdesc">Affiche le ▲/▼ de MMR de la session. Désactive pour le masquer.</div>
+      </div>
+      <div class="switch" id="sw-delta" role="switch" tabindex="0"></div>
+    </div>
+    <div class="srow">
+      <div class="stext">
         <div class="stitle">Taille de l'overlay</div>
         <div class="sdesc">Agrandit ou réduit l'overlay en jeu.</div>
       </div>
@@ -433,6 +440,8 @@
     if (swMusic && vm._showMusic !== undefined) swMusic.classList.toggle('on', vm._showMusic !== false);
     const swStreak = document.getElementById('sw-streak');
     if (swStreak && vm._showStreak !== undefined) swStreak.classList.toggle('on', vm._showStreak !== false);
+    const swDelta = document.getElementById('sw-delta');
+    if (swDelta && vm._showDelta !== undefined) swDelta.classList.toggle('on', vm._showDelta !== false);
     syncSlider('sl-scale', 'sv-scale', vm._overlayScale, '%');
     syncSlider('sl-opacity', 'sv-opacity', vm._overlayOpacity, '%');
     document.body.classList.toggle('hot', !!vm.hot);
@@ -597,6 +606,7 @@
   bindSwitch('sw-glow', 'mmrGlow');
   bindSwitch('sw-music', 'showMusic');
   bindSwitch('sw-streak', 'showStreak');
+  bindSwitch('sw-delta', 'showDelta');
   // Sliders : maj du label en direct (input), persiste à la fin du glissement (change).
   let sliderDragging = null;
   function syncSlider(slId, valId, value, suffix) {

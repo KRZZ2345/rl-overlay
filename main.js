@@ -26,7 +26,7 @@ const DEFAULT_CONFIG = {
   username: '',
   playlist: 'ranked-doubles',
   pollSeconds: 15,
-  overlay: { anchor: 'bottom-right', marginX: 320, marginY: 50, x: 20, y: 20, clickThrough: true, theme: 0, layout: 5, tutoSeen: false, lastSeenVersion: null, mmrGlow: true, showMusic: true, overlayScale: 100, overlayOpacity: 100, showStreak: true },
+  overlay: { anchor: 'bottom-right', marginX: 320, marginY: 50, x: 20, y: 20, clickThrough: true, theme: 0, layout: 5, tutoSeen: false, lastSeenVersion: null, mmrGlow: true, showMusic: true, overlayScale: 100, overlayOpacity: 100, showStreak: true, showDelta: true },
   // Discord Rich Presence : affiche MMR/rang live sur ton profil Discord.
   // clientId = "Application ID" d'une app creee sur discord.com/developers
   // (1 min, voir README). Vide = desactive. largeImageKey = cle d'un asset
@@ -196,7 +196,7 @@ function createWindow() {
     sendUpdate({ theme: (o.theme || 0) % THEME_COUNT, layout: o.layout || 0,
       mmrGlow: o.mmrGlow !== false, showMusic: o.showMusic !== false,
       overlayScale: o.overlayScale ?? 100, overlayOpacity: o.overlayOpacity ?? 100,
-      showStreak: o.showStreak !== false });
+      showStreak: o.showStreak !== false, showDelta: o.showDelta !== false });
   });
   win.loadFile('index.html');
 }
@@ -379,7 +379,7 @@ function pushHub() {
     const theme = (o.theme || 0) % THEME_COUNT;
     const payload = { ...lastVm, _theme: theme, _mmrGlow: o.mmrGlow !== false, _showMusic: o.showMusic !== false,
       _overlayScale: o.overlayScale ?? 100, _overlayOpacity: o.overlayOpacity ?? 100,
-      _showStreak: o.showStreak !== false };
+      _showStreak: o.showStreak !== false, _showDelta: o.showDelta !== false };
     if (showKeysOnce) { payload._showKeys = true; showKeysOnce = false; }
     if (showNewsOnce) { payload._showNews = true; showNewsOnce = false; }
     hubWin.webContents.send('hub-update', payload);
@@ -490,7 +490,7 @@ ipcMain.handle('force-update-check', () => { updateChecked = false; checkForUpda
 
 // IPC : réglage overlay depuis la page Réglages du Hub.
 // Booléens (toggles) et numériques (sliders, bornés). Tout autre clé -> ignorée.
-const BOOL_FLAGS = ['mmrGlow', 'showMusic', 'showStreak'];
+const BOOL_FLAGS = ['mmrGlow', 'showMusic', 'showStreak', 'showDelta'];
 const NUM_FLAGS = { overlayScale: [50, 150], overlayOpacity: [40, 100] };
 ipcMain.handle('set-overlay-flag', (_e, key, value) => {
   let v;
