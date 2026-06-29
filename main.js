@@ -484,6 +484,10 @@ ipcMain.handle('get-diagnostics', () => {
     hasStats: !!(lastVm && lastVm.mmr != null),
     updateStaged,
     isPackaged: app.isPackaged,
+    installDir: path.dirname(app.getPath('exe')),
+    installWritable: (() => {
+      try { const d = path.dirname(app.getPath('exe')); const t = path.join(d, '.wtest' + Date.now()); fs.writeFileSync(t, 'x'); fs.unlinkSync(t); return true; } catch { return false; }
+    })(),
   };
 });
 ipcMain.handle('get-matches', () => ({
@@ -1077,12 +1081,23 @@ function applyPendingUpdate() {
     try { fs.writeFileSync(pendingPath, JSON.stringify({ ...pending, attempts })); } catch {}
     const exe = app.getPath('exe');
     const installDir = path.dirname(exe);
-    const child = spawn('powershell.exe', [
-      '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', helper,
-      '-ParentPid', String(process.pid), '-Staged', stagedDir, '-Install', installDir, '-Exe', exe
-    ], { detached: true, stdio: 'ignore' });
+    // L'install est-elle writable ? (Program Files -> non sans admin)
+    let writable = true;
+    try { const t = path.join(installDir, '.wtest' + Date.now()); fs.writeFileSync(t, 'x'); fs.unlinkSync(t); } catch { writable = false; }
+    const args = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', helper,
+      '-ParentPid', String(process.pid), '-Staged', stagedDir, '-Install', installDir, '-Exe', exe];
+    let child;
+    if (writable) {
+      child = spawn('powershell.exe', args, { detached: true, stdio: 'ignore' });
+    } else {
+      // Install protégée (Program Files) : relance le helper ÉLEVÉ (UAC) pour
+      // que robocopy puisse écrire. Sinon le swap échouerait en boucle.
+      const argList = args.map((a) => "'" + String(a).replace(/'/g, "''") + "'").join(',');
+      child = spawn('powershell.exe', ['-NoProfile', '-Command',
+        `Start-Process powershell.exe -Verb RunAs -WindowStyle Hidden -ArgumentList ${argList}`], { detached: true, stdio: 'ignore' });
+    }
     child.unref();
-    logFocus('applyPendingUpdate: helper lancé, quit pour swap');
+    logFocus(`applyPendingUpdate: helper lancé (${writable ? 'normal' : 'élevé UAC'}), quit pour swap`);
     return true;
   } catch (e) {
     logFocus('applyPendingUpdate error: ' + e.message);

@@ -18,6 +18,17 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.2.2',
+    date: '2026-06-29',
+    title: 'Mises à jour : support des installs protégées',
+    items: [
+      { icon: '🔐', text: 'Si l\'appli est installée dans un dossier protégé (Program Files), la mise à jour s\'élève automatiquement (UAC) au lieu d\'échouer en silence.' },
+      { icon: '🩺', text: 'Le Diagnostic prévient si l\'install est dans un dossier protégé et conseille un dossier perso (mises à jour sans admin).' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.2.1',
     date: '2026-06-29',
     title: 'MMR live estimé (depuis le journal)',

@@ -638,14 +638,18 @@
     let d; try { d = await window.hub.diagnostics(); } catch { return; }
     const yn = (b) => b ? '<span class="ok">oui</span>' : '<span class="bad">non</span>';
     const row = (k, v) => `<div class="drow"><span class="dk">${k}</span><span class="dv">${v}</span></div>`;
+    const warnInstall = (d.isPackaged && d.installWritable === false)
+      ? `<div class="drow" style="border:none"><span class="dv bad">⚠ Installé dans un dossier protégé (${d.installDir || 'Program Files'}). Les mises à jour demanderont l'admin (UAC) à chaque fois. Conseillé : réinstaller dans un dossier perso (Bureau/Documents).</span></div>` : '';
     box.innerHTML =
       row('Version', d.version) +
       row('Mode', d.isPackaged ? 'installé' : 'dev') +
       row('Dossier config', d.userData) +
+      (d.installDir ? row('Dossier install', `${d.installWritable === false ? '<span class="bad">protégé</span> ' : ''}${d.installDir}`) : '') +
       row('Journal RL', `${yn(d.logFound)} <span class="dk" style="flex:none">${d.logPath}</span>`) +
       row('En partie', yn(d.inGame)) +
       row('Stats chargées', yn(d.hasStats)) +
-      row('MAJ téléchargée', yn(d.updateStaged));
+      row('MAJ téléchargée', yn(d.updateStaged)) +
+      warnInstall;
   }
   document.getElementById('settings-toggle').addEventListener('click', () => {
     document.body.classList.toggle('show-settings');
