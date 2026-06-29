@@ -848,6 +848,11 @@ app.whenReady().then(() => {
   if (isConfigured()) startOverlay();
   else createSetupWindow();
   maybeShowPatchNotes();
+  // Vérifie/télécharge l'update AU BOOT, sans dépendre d'être en jeu. L'update
+  // se stage en fond (pending.json) et s'applique au prochain lancement. Avant,
+  // checkForUpdate n'était appelé que depuis poll() (donc seulement RL au 1er
+  // plan) -> qui ne lance jamais le jeu ne recevait jamais l'update.
+  checkForUpdate();
 });
 
 // Affiche la page Nouveautés UNIQUEMENT au 1er lancement après un update :

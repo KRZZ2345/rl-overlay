@@ -18,6 +18,16 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.1.2',
+    date: '2026-06-29',
+    title: 'Mises à jour plus fiables',
+    items: [
+      { icon: '🔄', text: 'Les mises à jour se vérifient et se téléchargent dès le lancement, sans avoir besoin d\'être en partie. Plus besoin d\'ouvrir Rocket League pour recevoir une update.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.1.1',
     date: '2026-06-29',
     title: 'Page Nouveautés & confort du Hub',
