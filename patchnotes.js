@@ -18,6 +18,16 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.2.6',
+    date: '2026-06-29',
+    title: 'Source OBS aux couleurs de ton thème',
+    items: [
+      { icon: '🎨', text: 'La source OBS reprend maintenant le thème choisi dans l\'app (mêmes couleurs que l\'overlay/Hub) au lieu des couleurs par défaut.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.2.5',
     date: '2026-06-29',
     title: 'MMR live fiable',
