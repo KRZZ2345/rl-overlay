@@ -18,6 +18,16 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.2.1',
+    date: '2026-06-29',
+    title: 'MMR live estimé (depuis le journal)',
+    items: [
+      { icon: '⚡', text: 'Ton MMR s\'estime en direct à chaque mise en file, lu depuis le journal de Rocket League — sans attendre le site de stats. Badge « live » sous le MMR (marqué ≈ tant que la calibration s\'affine ; le chiffre exact reste fourni par le tracker).' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.2.0',
     date: '2026-06-29',
     title: 'Stats live du match + Historique',
