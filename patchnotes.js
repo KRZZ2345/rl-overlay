@@ -18,6 +18,17 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.1.1',
+    date: '2026-06-29',
+    title: 'Page Nouveautés & confort du Hub',
+    items: [
+      { icon: '🎁', text: 'Nouvelle page Nouveautés dans le Hub (bouton 🎁), ouverte automatiquement au 1er lancement après une mise à jour.' },
+      { icon: '🪟', text: 'Le Hub se ferme tout seul quand tu le quittes des yeux — l\'overlay en jeu revient sans rester bloqué caché.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.1.0',
     date: '2026-06-29',
     title: 'Thèmes, formes & tableau de bord',
