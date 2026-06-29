@@ -568,18 +568,28 @@ function extractZip(zip, dest) {
   });
 }
 
+// Suppression best-effort : ne JAMAIS throw (un fichier verrouillé par EAC /
+// antivirus ne doit pas casser l'update — sinon ENOTEMPTY bloque tout staging).
+function rmrf(p) { try { fs.rmSync(p, { recursive: true, force: true }); } catch (e) { logFocus('rmrf ' + p + ': ' + e.message); } }
+
 async function downloadAndStage(url, version) {
   const dir = path.join(app.getPath('userData'), 'update');
-  fs.rmSync(dir, { recursive: true, force: true });
   fs.mkdirSync(dir, { recursive: true });
+  // Nettoyage best-effort des restes (anciens staged*/zip). Si un reste est
+  // verrouillé, on continue quand même : on stage dans un dossier suffixé par
+  // version (nom neuf), donc aucune dépendance à la suppression de l'ancien.
+  for (const name of fs.readdirSync(dir)) {
+    if (name.startsWith('staged') || name.endsWith('.zip')) rmrf(path.join(dir, name));
+  }
   const zipPath = path.join(dir, `RL-Overlay-${version}.zip`);
   const res = await fetch(url, { headers: { 'User-Agent': 'rl-overlay' } });
   if (!res.ok) throw new Error('download ' + res.status);
   fs.writeFileSync(zipPath, Buffer.from(await res.arrayBuffer()));
-  const stagedDir = path.join(dir, 'staged');
+  const stagedDir = path.join(dir, 'staged-' + version);
+  rmrf(stagedDir);
   await extractZip(zipPath, stagedDir);
   if (!fs.existsSync(path.join(stagedDir, 'RL Overlay.exe'))) {
-    fs.rmSync(dir, { recursive: true, force: true });
+    rmrf(stagedDir); rmrf(zipPath);
     throw new Error('staged exe manquant');
   }
   fs.writeFileSync(path.join(dir, 'apply-update.ps1'), APPLY_UPDATE_PS);

@@ -18,6 +18,16 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.1.10',
+    date: '2026-06-29',
+    title: 'Mise à jour anti-blocage',
+    items: [
+      { icon: '🧹', text: 'Corrige un cas où un fichier verrouillé (anticheat/antivirus) bloquait définitivement les mises à jour. Le téléchargement utilise maintenant un dossier propre par version et ignore les restes verrouillés.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.1.9',
     date: '2026-06-29',
     title: 'MMR en direct (sans injection)',
