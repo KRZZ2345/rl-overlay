@@ -18,13 +18,26 @@
     "appId": "com.krzz.rloverlay",
     "productName": "RL Overlay",
     "win": {
-      "target": "zip"
+      "target": "nsis",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "RL-Overlay-Setup-${version}.exe"
     },
     "files": [
       "**/*",
       "!dist/**",
+      "!dist-pack/**",
+      "!docs/**",
+      "!test/**",
+      "!.claude/**",
+      "!.superpowers/**",
       "!config.json",
-      "!session.json"
+      "!session.json",
+      "!matches.json"
     ]
   },
   "repository": "github:KRZZ2345/rl-overlay"

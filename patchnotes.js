@@ -18,6 +18,17 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.2.3',
+    date: '2026-06-29',
+    title: 'Vrai installeur (.exe)',
+    items: [
+      { icon: '📦', text: 'Nouvel installeur RL-Overlay-Setup.exe : installe dans ton dossier perso (sans admin), crée les raccourcis et un désinstalleur. Fini les soucis de mise à jour liés à Program Files.' },
+      { icon: '🔄', text: 'Les mises à jour préservent le désinstalleur. Les installs existantes continuent de se mettre à jour normalement.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.2.2',
     date: '2026-06-29',
     title: 'Mises à jour : support des installs protégées',

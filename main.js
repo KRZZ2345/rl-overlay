@@ -1045,7 +1045,7 @@ Start-Sleep -Milliseconds 500
 $upd = Split-Path $Staged
 $ok = $false
 for ($r = 0; $r -lt 4; $r++) {
-  robocopy $Staged $Install /MIR /NFL /NDL /NJH /NJS /NC /NS | Out-Null
+  robocopy $Staged $Install /MIR /XF "Uninstall *.exe" /NFL /NDL /NJH /NJS /NC /NS | Out-Null
   if ($LASTEXITCODE -lt 8) { $ok = $true; break }
   Start-Sleep -Milliseconds 1000
 }

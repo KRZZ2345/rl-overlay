@@ -44,12 +44,20 @@ powershell -ExecutionPolicy Bypass -File ".claude\skills\run-rl-overlay\build-ru
 if ($LASTEXITCODE -ne 0) { throw "Build échoué (build-run.ps1, code $LASTEXITCODE)" }
 if (-not (Test-Path $zip)) { throw "Zip introuvable: $zip" }
 
+# 3b. Installeur per-user NSIS (asset pour les NOUVEAUX ; le zip sert à l'auto-update).
+#     Signature désactivée (pas de certif payant -> SmartScreen avertit, normal).
+$setup = "dist\RL-Overlay-Setup-$new.exe"
+Remove-Item $setup -Force -ErrorAction SilentlyContinue
+$env:CSC_IDENTITY_AUTO_DISCOVERY = "false"
+npx electron-builder --win nsis
+if (-not (Test-Path $setup)) { throw "Installeur NSIS introuvable: $setup" }
+
 # 4. Git commit + tag (annoté, pour qu'il soit poussé par --follow-tags) + push
 git add package.json
 git commit -m "release: v$new"
 git tag -a "v$new" -m "v$new"
 git push --follow-tags
 
-# 5. GitHub Release (notes auto-generees)
-& $gh release create "v$new" $zip --title "v$new" --generate-notes
+# 5. GitHub Release : zip (auto-update) + setup.exe (nouveaux installs)
+& $gh release create "v$new" $zip $setup --title "v$new" --generate-notes
 Write-Host "Release v$new publiee."
