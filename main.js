@@ -9,6 +9,7 @@ const { recordSample } = require('./lib/history');
 const { buildViewModel } = require('./lib/viewmodel');
 const { isNewer, pickAsset, repoSlug, compareVersions } = require('./lib/updater');
 const { startLogWatcher, defaultLogPath } = require('./rllog');
+const { makeEntry, appendMatch } = require('./lib/matchlog');
 
 // Nom du process de Rocket League (sans .exe) tel que renvoyé par Get-Process.
 const RL_PROCESS = 'RocketLeague';
@@ -785,6 +786,13 @@ while ($true) {
 let logWatcher = null;
 let matchBurst = []; // timers de la rafale de refresh post-match
 
+// Journal des matchs (matches.json) : base de futurs graphes. Enregistré quand le
+// MMR change après une fin de match détectée.
+let matches = [];
+function matchesPath() { return path.join(app.getPath('userData'), 'matches.json'); }
+function loadMatches() { try { matches = JSON.parse(fs.readFileSync(matchesPath(), 'utf8')) || []; } catch { matches = []; } }
+function saveMatches() { try { fs.writeFileSync(matchesPath(), JSON.stringify(matches)); } catch (e) { logFocus('saveMatches: ' + e.message); } }
+
 function clearMatchBurst() { matchBurst.forEach(clearTimeout); matchBurst = []; }
 
 // Fin de match détectée -> on re-poll le tracker jusqu'à ce que le MMR de la
@@ -801,7 +809,11 @@ function refreshAfterMatch() {
     await poll(true);
     const now = mmrRef(sel).last;
     logFocus(`post-match refresh #${tries}: mmr ${before} -> ${now}`);
-    if (now !== before && now != null) { logFocus('post-match: maj MMR détectée'); return; }
+    if (now !== before && now != null) {
+      if (before != null) { matches = appendMatch(matches, makeEntry(sel, before, now, today())); saveMatches(); logFocus(`match enregistré: ${sel} ${before}->${now}`); }
+      logFocus('post-match: maj MMR détectée');
+      return;
+    }
     if (tries < 18) matchBurst.push(setTimeout(tick, 10000)); // ~3 min de fenêtre
     else logFocus('post-match: MMR inchangé après ' + tries + ' essais (tracker lag ou même MMR)');
   };
@@ -985,6 +997,7 @@ app.whenReady().then(() => {
     app.setLoginItemSettings({ openAtLogin: true });
   }
   session = loadSession();
+  loadMatches();
   // 1er lancement (pas de pseudo) -> écran de config, sinon overlay direct.
   if (isConfigured()) startOverlay();
   else createSetupWindow();
