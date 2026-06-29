@@ -54,3 +54,68 @@ body.t5 {
   --accent:#ff3b4e; --accent2:#ff8a3d; --title:#fdeef0;
   --bg1:rgba(28,12,15,0.62); --bg2:rgba(18,8,10,0.66);
 }
+
+/* ===== 6 thèmes ajoutés (t6-t14) — galerie validée 2026-06-29 ===== */
+/* 6 — Aurora (teal + cyan boréal) */
+body.t6 {
+  --bg:#06100e; --card:#0a1714; --line:#163029; --txt:#e9fff7; --muted:#7fb0a2; --dim:#4d6f64;
+  --aA:#2ee6a6; --aB:#5bd0ff; --good:#37e0c0; --loss:#ff6b8a; --hot:#2ee6a6; --hot2:#9bffd6;
+  --accent:#2ee6a6; --accent2:#5bd0ff; --title:#e9fff7;
+  --bg1:rgba(10,23,20,0.62); --bg2:rgba(6,16,14,0.66);
+}
+/* 7 — Sunset (orange + rose) */
+body.t7 {
+  --bg:#120a0c; --card:#1b0f12; --line:#33181f; --txt:#ffeef0; --muted:#c08f96; --dim:#7a565c;
+  --aA:#ff7a3d; --aB:#ff4d8d; --good:#46d39a; --loss:#ff5d6c; --hot:#ff7a3d; --hot2:#ffb46b;
+  --accent:#ff7a3d; --accent2:#ff4d8d; --title:#ffeef0;
+  --bg1:rgba(27,15,18,0.62); --bg2:rgba(18,10,12,0.66);
+}
+/* 8 — Vapor (rose + cyan pastel) */
+body.t8 {
+  --bg:#0c0a16; --card:#120f22; --line:#251f3f; --txt:#f3eaff; --muted:#a394c6; --dim:#665a8c;
+  --aA:#ff8ad6; --aB:#62e6ff; --good:#5af0c0; --loss:#ff6b8a; --hot:#ff8ad6; --hot2:#b3f0ff;
+  --accent:#ff8ad6; --accent2:#62e6ff; --title:#f3eaff;
+  --bg1:rgba(18,15,34,0.62); --bg2:rgba(12,10,22,0.66);
+}
+/* 9 — Royal Gold (or sur navy) */
+body.t9 {
+  --bg:#070a14; --card:#0c1020; --line:#1e2740; --txt:#fff7e6; --muted:#9aa6c6; --dim:#5d678a;
+  --aA:#ffce5c; --aB:#e0a020; --good:#46d39a; --loss:#ff5d6c; --hot:#ffce5c; --hot2:#fff0b0;
+  --accent:#ffce5c; --accent2:#e0a020; --title:#fff7e6;
+  --bg1:rgba(12,16,32,0.62); --bg2:rgba(7,10,20,0.66);
+}
+/* 10 — Toxic (lime + violet) */
+body.t10 {
+  --bg:#0a0c08; --card:#0f1310; --line:#222a1c; --txt:#f0ffe6; --muted:#9ab088; --dim:#5d6e50;
+  --aA:#c6ff3d; --aB:#9a5bff; --good:#c6ff3d; --loss:#ff6b6b; --hot:#c6ff3d; --hot2:#e6ff9c;
+  --accent:#c6ff3d; --accent2:#9a5bff; --title:#f0ffe6;
+  --bg1:rgba(15,19,16,0.62); --bg2:rgba(10,12,8,0.66);
+}
+/* 11 — Ember (braise rouge-orange) */
+body.t11 {
+  --bg:#0d0908; --card:#160d0a; --line:#2c1a14; --txt:#fff0ea; --muted:#c0968a; --dim:#7a5a4c;
+  --aA:#ff5a2e; --aB:#ffaa3d; --good:#46d39a; --loss:#ff3b4e; --hot:#ff5a2e; --hot2:#ffcf6b;
+  --accent:#ff5a2e; --accent2:#ffaa3d; --title:#fff0ea;
+  --bg1:rgba(22,13,10,0.62); --bg2:rgba(13,9,8,0.66);
+}
+/* 12 — Forest (émeraude + mousse) */
+body.t12 {
+  --bg:#070d09; --card:#0c1510; --line:#1a2c1f; --txt:#eafff0; --muted:#86b094; --dim:#536e5b;
+  --aA:#3de08a; --aB:#a8d84a; --good:#3de08a; --loss:#ff6b6b; --hot:#3de08a; --hot2:#d6ff9c;
+  --accent:#3de08a; --accent2:#a8d84a; --title:#eafff0;
+  --bg1:rgba(12,21,16,0.62); --bg2:rgba(7,13,9,0.66);
+}
+/* 13 — Coral (corail + pêche) */
+body.t13 {
+  --bg:#120c0a; --card:#1b110d; --line:#33201a; --txt:#fff0ea; --muted:#c79a8a; --dim:#7e5c4c;
+  --aA:#ff6f61; --aB:#ffb48a; --good:#46d39a; --loss:#ff3b4e; --hot:#ff6f61; --hot2:#ffd0b0;
+  --accent:#ff6f61; --accent2:#ffb48a; --title:#fff0ea;
+  --bg1:rgba(27,17,13,0.62); --bg2:rgba(18,12,10,0.66);
+}
+/* 14 — Indigo (indigo + violet) */
+body.t14 {
+  --bg:#08081a; --card:#0d0d24; --line:#1f1f44; --txt:#eeeaff; --muted:#9a94c6; --dim:#5d588c;
+  --aA:#6d6bff; --aB:#b86bff; --good:#5af0c0; --loss:#ff6b8a; --hot:#6d6bff; --hot2:#c0b0ff;
+  --accent:#6d6bff; --accent2:#b86bff; --title:#eeeaff;
+  --bg1:rgba(13,13,36,0.62); --bg2:rgba(8,8,26,0.66);
+}

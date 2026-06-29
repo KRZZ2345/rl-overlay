@@ -18,6 +18,28 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.1.6',
+    date: '2026-06-29',
+    title: '9 nouveaux thèmes + MMR qui brille',
+    items: [
+      { icon: '🎨', text: '9 nouveaux thèmes couleur (15 au total). Cycle avec Ctrl + Alt + T.' },
+      { icon: '✨', text: 'Le MMR a un halo lumineux qui pulse doucement, sur toutes les formes d\'overlay.' },
+    ],
+    themePreviews: [
+      { name: 'Aurora',     t: { bg:'#06100e', card:'#0a1714', line:'#163029', txt:'#e9fff7', muted:'#7fb0a2', dim:'#4d6f64', aA:'#2ee6a6', aB:'#5bd0ff', good:'#37e0c0', loss:'#ff6b8a', hot:'#2ee6a6', hot2:'#9bffd6' } },
+      { name: 'Sunset',     t: { bg:'#120a0c', card:'#1b0f12', line:'#33181f', txt:'#ffeef0', muted:'#c08f96', dim:'#7a565c', aA:'#ff7a3d', aB:'#ff4d8d', good:'#46d39a', loss:'#ff5d6c', hot:'#ff7a3d', hot2:'#ffb46b' } },
+      { name: 'Vapor',      t: { bg:'#0c0a16', card:'#120f22', line:'#251f3f', txt:'#f3eaff', muted:'#a394c6', dim:'#665a8c', aA:'#ff8ad6', aB:'#62e6ff', good:'#5af0c0', loss:'#ff6b8a', hot:'#ff8ad6', hot2:'#b3f0ff' } },
+      { name: 'Royal Gold', t: { bg:'#070a14', card:'#0c1020', line:'#1e2740', txt:'#fff7e6', muted:'#9aa6c6', dim:'#5d678a', aA:'#ffce5c', aB:'#e0a020', good:'#46d39a', loss:'#ff5d6c', hot:'#ffce5c', hot2:'#fff0b0' } },
+      { name: 'Toxic',      t: { bg:'#0a0c08', card:'#0f1310', line:'#222a1c', txt:'#f0ffe6', muted:'#9ab088', dim:'#5d6e50', aA:'#c6ff3d', aB:'#9a5bff', good:'#c6ff3d', loss:'#ff6b6b', hot:'#c6ff3d', hot2:'#e6ff9c' } },
+      { name: 'Ember',      t: { bg:'#0d0908', card:'#160d0a', line:'#2c1a14', txt:'#fff0ea', muted:'#c0968a', dim:'#7a5a4c', aA:'#ff5a2e', aB:'#ffaa3d', good:'#46d39a', loss:'#ff3b4e', hot:'#ff5a2e', hot2:'#ffcf6b' } },
+      { name: 'Forest',     t: { bg:'#070d09', card:'#0c1510', line:'#1a2c1f', txt:'#eafff0', muted:'#86b094', dim:'#536e5b', aA:'#3de08a', aB:'#a8d84a', good:'#3de08a', loss:'#ff6b6b', hot:'#3de08a', hot2:'#d6ff9c' } },
+      { name: 'Coral',      t: { bg:'#120c0a', card:'#1b110d', line:'#33201a', txt:'#fff0ea', muted:'#c79a8a', dim:'#7e5c4c', aA:'#ff6f61', aB:'#ffb48a', good:'#46d39a', loss:'#ff3b4e', hot:'#ff6f61', hot2:'#ffd0b0' } },
+      { name: 'Indigo',     t: { bg:'#08081a', card:'#0d0d24', line:'#1f1f44', txt:'#eeeaff', muted:'#9a94c6', dim:'#5d588c', aA:'#6d6bff', aB:'#b86bff', good:'#5af0c0', loss:'#ff6b8a', hot:'#6d6bff', hot2:'#c0b0ff' } },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.1.5',
     date: '2026-06-29',
     title: 'Mises à jour automatiques',

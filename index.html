@@ -45,7 +45,14 @@
   .arr  { color: color-mix(in srgb, var(--accent) 75%, #fff 0%); font-weight: 800; }
   .rank { font-size: 9px; font-weight: 600; color: #9fb0d8; letter-spacing: 0.2px; }
   .mmr  { font-weight: 800; color: var(--accent); line-height: 1;
-          text-shadow: 0 0 13px color-mix(in srgb, var(--accent) 55%, transparent); }
+          text-shadow: 0 0 13px color-mix(in srgb, var(--accent) 55%, transparent);
+          animation: mmr-glow 2.4s ease-in-out infinite; }
+  /* Glow ambiant pulsé sur le MMR — couleur accent (suit le thème), toutes les formes. */
+  @keyframes mmr-glow {
+    0%, 100% { text-shadow: 0 0 8px  color-mix(in srgb, var(--accent) 40%, transparent); }
+    50%      { text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 80%, transparent); }
+  }
+  @media (prefers-reduced-motion: reduce) { .mmr { animation: none; } }
   .delta { font-weight: 800; font-variant-numeric: tabular-nums; }
   .delta.up { color: #4cf08a; } .delta.down { color: #ff6b6b; } .delta.flat { color: #9fb0d8; }
   .w { color: #4cf08a; font-weight: 800; } .l { color: #ff6b6b; font-weight: 800; }

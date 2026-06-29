@@ -195,7 +195,7 @@ function createWindow() {
   win.loadFile('index.html');
 }
 
-const THEME_COUNT = 6;
+const THEME_COUNT = 15;
 const LAYOUT_COUNT = 9; // Minimal/Compact/Compétitif/Dashboard/Badge/Premium + Split Wing/Cyber/Marquee
 
 // Passe au thème suivant, persiste, et notifie le renderer (avec toast).

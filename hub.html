@@ -125,6 +125,28 @@
     box-shadow: 0 0 8px rgba(255,255,255,.12); }
   #news .shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin-top: 14px; }
   #news .shots img { width: 100%; border-radius: 10px; border: 1px solid var(--line); display: block; }
+
+  /* Aperçus mini-overlay par thème (tokens posés en style inline local) */
+  #news .tps { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 14px; }
+  .tp { border-radius: 12px; overflow: hidden; border: 1px solid var(--tp-line); background: var(--tp-bg); }
+  .tp .tp-tag { display: flex; align-items: center; gap: 8px; padding: 7px 11px;
+    background: var(--tp-card); border-bottom: 1px solid var(--tp-line); }
+  .tp .tp-dot { width: 16px; height: 16px; border-radius: 5px;
+    background: linear-gradient(135deg, var(--tp-aA), var(--tp-aB)); flex: 0 0 auto; }
+  .tp .tp-name { font-size: 12px; font-weight: 700; color: var(--tp-txt); }
+  .tp .tp-hud { padding: 11px 12px 13px;
+    background: radial-gradient(120% 90% at 85% -10%, var(--tp-card), var(--tp-bg) 72%); }
+  .tp .tp-top { font-size: 11px; color: var(--tp-muted); }
+  .tp .tp-mmr { font-weight: 300; font-size: 30px; line-height: .95; color: var(--tp-txt);
+    font-variant-numeric: tabular-nums; letter-spacing: -.03em; margin: 2px 0 4px;
+    text-shadow: 0 0 12px color-mix(in srgb, var(--tp-aA) 55%, transparent); }
+  .tp .tp-line { display: flex; align-items: center; gap: 7px; font-size: 11px; }
+  .tp .tp-delta { color: var(--tp-good); font-style: italic; }
+  .tp .tp-streak { padding: 1px 7px; border-radius: 99px; font-size: 10px; font-weight: 800; font-style: italic;
+    color: var(--tp-bg); background: linear-gradient(100deg, var(--tp-hot), var(--tp-hot2)); }
+  .tp .tp-bar { height: 6px; border-radius: 99px; background: var(--tp-line); overflow: hidden; margin-top: 9px; }
+  .tp .tp-bar > i { display: block; height: 100%; width: 62%;
+    background: linear-gradient(90deg, var(--tp-aA), var(--tp-aB)); }
 </style>
 </head>
 <body>
@@ -347,11 +369,25 @@
       const shots = (n.images && n.images.length)
         ? `<div class="shots">${n.images.map((src) => `<img src="${src}" alt="" />`).join('')}</div>`
         : '';
+      const previews = (n.themePreviews && n.themePreviews.length)
+        ? `<div class="tps">${n.themePreviews.map((p) => {
+            const t = p.t || {};
+            const vars = Object.keys(t).map((k) => `--tp-${k}:${t[k]}`).join(';');
+            return `<div class="tp" style="${vars}">
+              <div class="tp-tag"><span class="tp-dot"></span><span class="tp-name">${p.name || ''}</span></div>
+              <div class="tp-hud">
+                <div class="tp-top">Diamant II · 2v2</div>
+                <div class="tp-mmr">1234</div>
+                <div class="tp-line"><span class="tp-delta">▲ +24</span><span class="tp-streak">🔥 3</span></div>
+                <div class="tp-bar"><i></i></div>
+              </div></div>`;
+          }).join('')}</div>`
+        : '';
       return `<div class="release">
         <div class="rhead"><span class="rver">v${n.version}</span>
           <span class="rtitle">${n.title || ''}</span>
           <span class="rdate">${n.date || ''}</span></div>
-        <ul class="nlist">${items}</ul>${swatches}${shots}</div>`;
+        <ul class="nlist">${items}</ul>${swatches}${previews}${shots}</div>`;
     }).join('');
   }
   renderNews();
