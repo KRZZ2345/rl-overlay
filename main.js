@@ -7,7 +7,7 @@ const { DiscordRPC } = require('./discord-rpc');
 const { loadHistory, saveHistory } = require('./lib/history-store');
 const { recordSample } = require('./lib/history');
 const { buildViewModel } = require('./lib/viewmodel');
-const { isNewer, pickAsset, repoSlug } = require('./lib/updater');
+const { isNewer, pickAsset, repoSlug, compareVersions } = require('./lib/updater');
 
 // Nom du process de Rocket League (sans .exe) tel que renvoyé par Get-Process.
 const RL_PROCESS = 'RocketLeague';
@@ -813,9 +813,21 @@ function applyPendingUpdate() {
     const dir = path.join(app.getPath('userData'), 'update');
     const pendingPath = path.join(dir, 'pending.json');
     if (!fs.existsSync(pendingPath)) return false;
-    const { stagedDir } = JSON.parse(fs.readFileSync(pendingPath, 'utf8'));
+    const pending = JSON.parse(fs.readFileSync(pendingPath, 'utf8'));
+    const { stagedDir, version } = pending;
     const helper = path.join(dir, 'apply-update.ps1');
-    if (!fs.existsSync(helper) || !stagedDir || !fs.existsSync(stagedDir)) return false;
+    const dropPending = () => { try { fs.rmSync(dir, { recursive: true, force: true }); } catch {} };
+    // Pending corrompu / staged absent -> on purge et on démarre normalement.
+    if (!fs.existsSync(helper) || !stagedDir || !fs.existsSync(stagedDir)) { dropPending(); return false; }
+    // Déjà à jour (pending <= version installée) -> rien à appliquer. Évite de
+    // ré-appliquer en boucle un pending de la version courante.
+    if (version && compareVersions(version, app.getVersion()) <= 0) { dropPending(); return false; }
+    // Garde-fou anti-boucle : si le swap a déjà échoué 2 fois, on abandonne ce
+    // pending (install probablement protégé / exe verrouillé) plutôt que de
+    // relancer indéfiniment. L'updater retentera au prochain check.
+    const attempts = (pending.attempts || 0) + 1;
+    if (attempts > 2) { logFocus('applyPendingUpdate: abandon après ' + (attempts - 1) + ' essais'); dropPending(); return false; }
+    try { fs.writeFileSync(pendingPath, JSON.stringify({ ...pending, attempts })); } catch {}
     const exe = app.getPath('exe');
     const installDir = path.dirname(exe);
     const child = spawn('powershell.exe', [

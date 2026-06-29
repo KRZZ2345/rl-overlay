@@ -18,6 +18,16 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.1.3',
+    date: '2026-06-29',
+    title: 'Correctif mise à jour (anti-boucle)',
+    items: [
+      { icon: '🛠️', text: 'Corrige un cas où l\'appli pouvait se relancer en boucle après une mise à jour. La mise à jour s\'abandonne proprement si l\'installation échoue, l\'appli démarre normalement.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.1.2',
     date: '2026-06-29',
     title: 'Mises à jour plus fiables',
