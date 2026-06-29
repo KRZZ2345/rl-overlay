@@ -514,7 +514,7 @@ function nudge(dx, dy) {
 // seconde (P/Invoke GetForegroundWindow). Pas de module natif requis.
 let focusProc = null;
 let overlayVisible = false;
-let forceShow = true; // TEMP screenshot
+let forceShow = false; // affichage piloté par le focus RL ; Ctrl+Alt+H force on/off
 
 // Dernier titre Spotify "Artiste - Titre" vu (null = pas de musique / pausé).
 let lastSpotify = null;
