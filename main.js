@@ -12,6 +12,7 @@ const { startLogWatcher, defaultLogPath } = require('./rllog');
 const { startStatsApi } = require('./statsapi');
 const { enableStatsApi, findRocketLeague } = require('./lib/rlinstall');
 const { matchModel, resultFromScores } = require('./lib/statsmodel');
+const { createAggregator } = require('./lib/matchagg');
 const { makeEntry, appendMatch, summarize } = require('./lib/matchlog');
 const { sparkline } = require('./lib/sparkline');
 
@@ -851,6 +852,7 @@ function refreshAfterMatch() {
 let statsApi = null;
 let lastLive = null;          // dernier modèle de match en direct (Stats API)
 let lastLiveSent = 0, lastLiveSig = '';
+let matchAgg = null;          // agrégateur du match en cours (récap boost/sol-air/…)
 function startStatsApiWatcher() {
   if (statsApi) return;
   statsApi = startStatsApi({
@@ -860,6 +862,8 @@ function startStatsApiWatcher() {
       if (ev === 'UpdateState') {
         const cfg = loadConfig();
         const model = matchModel(v.Data, { username: cfg.username });
+        // Échantillonne pour le récap (hors replay de but).
+        if (model.me && !model.replay) { if (!matchAgg) matchAgg = createAggregator(); matchAgg.sample(model.me); }
         // throttle ~4/s + n'émet que si ça a changé (l'API débite jusqu'à 120 Hz)
         const sig = model.me ? `${model.me.goals}.${model.me.saves}.${model.me.shots}.${model.me.assists}.${model.me.boost}.${model.teamScore}.${model.oppScore}.${model.time}` : 'none';
         const now = Date.now();
@@ -873,16 +877,20 @@ function startStatsApiWatcher() {
         if (lastLive && lastLive.me) {
           const r = resultFromScores(lastLive.teamScore, lastLive.oppScore);
           const me = lastLive.me;
+          const recap = matchAgg ? matchAgg.finalize() : null;
           matches = appendMatch(matches, makeEntry(loadConfig().playlist, null, null, today(), Date.now(), {
             result: r, teamScore: lastLive.teamScore, oppScore: lastLive.oppScore,
-            goals: me.goals, saves: me.saves, shots: me.shots, assists: me.assists, score: me.score, source: 'statsapi',
+            goals: me.goals, saves: me.saves, shots: me.shots, assists: me.assists, score: me.score,
+            demos: me.demos, source: 'statsapi',
+            ...(recap ? { avgBoost: recap.avgBoost, boostZeroPct: recap.boostZeroPct, boostFullPct: recap.boostFullPct,
+              airPct: recap.airPct, groundPct: recap.groundPct, touches: recap.touches } : {}),
           }));
           saveMatches();
-          logFocus(`statsapi: match enregistré ${r} ${lastLive.teamScore}-${lastLive.oppScore} (buts ${me.goals})`);
+          logFocus(`statsapi: match enregistré ${r} ${lastLive.teamScore}-${lastLive.oppScore} (buts ${me.goals}${recap ? ', boost moy ' + recap.avgBoost : ''})`);
         }
-        lastLive = null; lastLiveSig = ''; pushHub();
+        lastLive = null; lastLiveSig = ''; matchAgg = null; pushHub();
       } else if (ev === 'Initialized' || ev === 'MatchCreated' || ev === 'MatchDestroyed') {
-        lastLive = null; lastLiveSig = ''; pushHub(); // nouveau match / reset -> carte live propre
+        lastLive = null; lastLiveSig = ''; matchAgg = null; pushHub(); // nouveau match / reset -> état propre
       }
     },
   });

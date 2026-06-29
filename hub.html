@@ -137,6 +137,13 @@
   #history .hli .hpl { flex: 1; color: var(--muted); }
   #history .hli .hd { color: var(--txt); font-variant-numeric: tabular-nums; }
   #history .hli .hmini { color: var(--muted); font-size: 12px; margin-left: 6px; }
+  #history .hli.clk { cursor: pointer; }
+  #history .hli.clk:hover { background: color-mix(in srgb, var(--aA) 6%, transparent); }
+  #history .hdet { display: none; flex-wrap: wrap; gap: 8px; padding: 8px 0 12px 38px; }
+  #history .hdet.open { display: flex; }
+  #history .hdc { background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+    padding: 5px 10px; font-size: 12px; color: var(--muted); }
+  #history .hdc b { color: var(--txt); font-variant-numeric: tabular-nums; }
   #history .hempty { color: var(--muted); font-size: 13px; }
   #history #hist-spark { max-width: 620px; margin: 0 0 18px; }
   #history #hist-spark .hk { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin-bottom: 6px; }
@@ -722,9 +729,29 @@
         const d2 = (m.delta > 0 ? '+' : '') + (m.delta || 0);
         right = `<span class="hd">${m.mmr ?? '—'} (${d2})</span>`;
       }
-      return `<li class="hli"><span class="res ${m.result || 'N'}">${m.result || '·'}</span>` +
-        `<span class="hpl">${PL_LABEL[m.playlist] || m.playlist || '—'} · ${time}</span>${right}</li>`;
+      // Détail (cliquable) : tout ce qu'on a sur ce match.
+      const det = [];
+      if (m.teamScore != null) det.push(['Score', m.teamScore + ' – ' + m.oppScore]);
+      if (m.goals != null) det.push(['Buts', m.goals]);
+      if (m.assists != null) det.push(['Passes', m.assists]);
+      if (m.shots != null) det.push(['Tirs', m.shots]);
+      if (m.saves != null) det.push(['Arrêts', m.saves]);
+      if (m.demos != null) det.push(['Démos', m.demos]);
+      if (m.score != null) det.push(['Score pts', m.score]);
+      if (m.avgBoost != null) det.push(['Boost moy.', m.avgBoost + '%']);
+      if (m.boostFullPct != null) det.push(['% à 100', m.boostFullPct + '%']);
+      if (m.boostZeroPct != null) det.push(['% à 0', m.boostZeroPct + '%']);
+      if (m.airPct != null) det.push(['% en l\'air', m.airPct + '%']);
+      if (m.touches != null) det.push(['Touches', m.touches]);
+      if (m.mmr != null) det.push(['MMR', m.mmr + ' (' + ((m.delta > 0 ? '+' : '') + (m.delta || 0)) + ')']);
+      const detHtml = det.length ? `<div class="hdet">${det.map(([k, v]) => `<span class="hdc"><b>${v}</b> ${k}</span>`).join('')}</div>` : '';
+      return `<li class="hli${det.length ? ' clk' : ''}"><span class="res ${m.result || 'N'}">${m.result || '·'}</span>` +
+        `<span class="hpl">${PL_LABEL[m.playlist] || m.playlist || '—'} · ${time}</span>${right}</li>${detHtml}`;
     }).join('');
+    // clic sur une ligne -> ouvre/ferme son détail (le détail suit la ligne dans le DOM)
+    list.querySelectorAll('.hli.clk').forEach((li) => li.addEventListener('click', () => {
+      const d = li.nextElementSibling; if (d && d.classList.contains('hdet')) d.classList.toggle('open');
+    }));
   }
   document.getElementById('history-toggle').addEventListener('click', () => {
     document.body.classList.toggle('show-history');
