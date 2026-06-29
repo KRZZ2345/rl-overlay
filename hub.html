@@ -130,6 +130,10 @@
     border-radius: 50%; background: var(--muted); transition: transform .18s, background .18s; }
   .switch.on { background: linear-gradient(100deg, var(--aA), var(--aB)); border-color: transparent; }
   .switch.on::after { transform: translateX(20px); background: var(--bg); }
+  /* Slider */
+  #settings .slider { flex: 0 0 160px; accent-color: var(--aA); cursor: pointer; }
+  #settings .sval { flex: 0 0 42px; text-align: right; font-variant-numeric: tabular-nums;
+    font-size: 13px; color: var(--muted); }
 
   /* Bouton 🎁 (ouvre la page Nouveautés), à gauche du bouton ? */
   #news-toggle { position: fixed; top: 12px; right: 50px; width: 30px; height: 30px; border-radius: 50%;
@@ -269,6 +273,29 @@
       </div>
       <div class="switch" id="sw-music" role="switch" tabindex="0"></div>
     </div>
+    <div class="srow">
+      <div class="stext">
+        <div class="stitle">Série de victoires</div>
+        <div class="sdesc">Affiche la pastille 🔥 de série. Désactive pour la masquer.</div>
+      </div>
+      <div class="switch" id="sw-streak" role="switch" tabindex="0"></div>
+    </div>
+    <div class="srow">
+      <div class="stext">
+        <div class="stitle">Taille de l'overlay</div>
+        <div class="sdesc">Agrandit ou réduit l'overlay en jeu.</div>
+      </div>
+      <input type="range" class="slider" id="sl-scale" min="50" max="150" step="5" />
+      <span class="sval" id="sv-scale">—</span>
+    </div>
+    <div class="srow">
+      <div class="stext">
+        <div class="stitle">Opacité de l'overlay</div>
+        <div class="sdesc">Rend l'overlay plus ou moins transparent.</div>
+      </div>
+      <input type="range" class="slider" id="sl-opacity" min="40" max="100" step="5" />
+      <span class="sval" id="sv-opacity">—</span>
+    </div>
   </div>
   <div id="news">
     <span class="nclose" id="news-close">✕ Fermer (Échap)</span>
@@ -342,6 +369,10 @@
     const swGlow = document.getElementById('sw-glow'), swMusic = document.getElementById('sw-music');
     if (swGlow && vm._mmrGlow !== undefined) swGlow.classList.toggle('on', vm._mmrGlow !== false);
     if (swMusic && vm._showMusic !== undefined) swMusic.classList.toggle('on', vm._showMusic !== false);
+    const swStreak = document.getElementById('sw-streak');
+    if (swStreak && vm._showStreak !== undefined) swStreak.classList.toggle('on', vm._showStreak !== false);
+    syncSlider('sl-scale', 'sv-scale', vm._overlayScale, '%');
+    syncSlider('sl-opacity', 'sv-opacity', vm._overlayOpacity, '%');
     document.body.classList.toggle('hot', !!vm.hot);
     document.body.classList.toggle('tilted', !!(vm.heuristics && vm.heuristics.tilt && vm.heuristics.tilt.tilted));
 
@@ -478,6 +509,23 @@
   }
   bindSwitch('sw-glow', 'mmrGlow');
   bindSwitch('sw-music', 'showMusic');
+  bindSwitch('sw-streak', 'showStreak');
+  // Sliders : maj du label en direct (input), persiste à la fin du glissement (change).
+  let sliderDragging = null;
+  function syncSlider(slId, valId, value, suffix) {
+    if (value === undefined) return;
+    const sl = document.getElementById(slId), val = document.getElementById(valId);
+    if (sliderDragging === slId) return; // ne pas écraser pendant que l'user glisse
+    if (sl) sl.value = value;
+    if (val) val.textContent = value + (suffix || '');
+  }
+  function bindSlider(slId, valId, key, suffix) {
+    const sl = document.getElementById(slId), val = document.getElementById(valId);
+    sl.addEventListener('input', () => { if (val) val.textContent = sl.value + (suffix || ''); sliderDragging = slId; });
+    sl.addEventListener('change', () => { sliderDragging = null; window.hub.setFlag(key, parseInt(sl.value, 10)); });
+  }
+  bindSlider('sl-scale', 'sv-scale', 'overlayScale', '%');
+  bindSlider('sl-opacity', 'sv-opacity', 'overlayOpacity', '%');
   // Échap : ferme d'abord une surcouche ouverte, sinon ferme le Hub.
   window.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;

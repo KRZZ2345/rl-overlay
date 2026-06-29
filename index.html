@@ -16,7 +16,8 @@
     overflow: hidden;
   }
 
-  #stage { position: relative; }
+  #stage { position: relative; transform: scale(var(--ovScale, 1)); transform-origin: top left;
+    opacity: var(--ovOpacity, 1); transition: opacity .25s ease, transform .25s ease; }
 
   /* ============================================================
      STYLE COMMUN — Esports HUD : coins biseautés, accents néon.
@@ -516,6 +517,7 @@
   let curTheme = 0, curLayout = 0;
   let glowOff = false;   // halo MMR désactivé (Réglages Hub)
   let showMusic = true;  // ligne musique affichée (Réglages Hub)
+  let showStreak = true; // série affichée (Réglages Hub)
 
   function applyThemeClass() {
     // className remplace tout -> on réinjecte aussi no-glow (sinon le toggle
@@ -613,12 +615,14 @@
     // Streak : in-game (API) si dispo, sinon session (delta MMR).
     const st = (s.gameStreak != null) ? s.gameStreak : (s.streak ?? 0);
     q('streak').forEach((e) => {
+      e.style.display = showStreak ? '' : 'none';
       e.classList.remove('streak-win', 'streak-loss', 'streak-zero');
       if (st > 0) { e.textContent = '🔥' + st; e.classList.add('streak-win'); }
       else if (st < 0) { e.textContent = (-st) + 'L'; e.classList.add('streak-loss'); }
       else { e.textContent = '—'; e.classList.add('streak-zero'); }
     });
     q('streakPill').forEach((e) => {
+      e.style.display = showStreak ? '' : 'none';
       e.classList.remove('win', 'loss');
       if (st > 0) { e.textContent = '🔥 ' + st; e.classList.add('win'); }
       else if (st < 0) { e.textContent = (-st) + 'L'; e.classList.add('loss'); }
@@ -791,6 +795,9 @@
     if (d.layout !== undefined) applyLayout(d.layout, d.layoutToast);
     if (d.mmrGlow !== undefined) { glowOff = !d.mmrGlow; applyThemeClass(); }
     if (d.showMusic !== undefined) { showMusic = d.showMusic; paint(); }
+    if (d.overlayScale !== undefined) document.documentElement.style.setProperty('--ovScale', (d.overlayScale / 100).toFixed(3));
+    if (d.overlayOpacity !== undefined) document.documentElement.style.setProperty('--ovOpacity', (d.overlayOpacity / 100).toFixed(3));
+    if (d.showStreak !== undefined) { showStreak = d.showStreak; paint(); }
     if (d.toast) showToast(d.toast);
     if (d.rankup) rankUp(d.rankup);
     if (d.appear) playAppear();
