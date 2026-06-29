@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('hub', {
   close: () => ipcRenderer.invoke('hub-close'),
   setFlag: (key, value) => ipcRenderer.invoke('set-overlay-flag', key, value),
   diagnostics: () => ipcRenderer.invoke('get-diagnostics'),
+  matches: () => ipcRenderer.invoke('get-matches'),
   openLogs: () => ipcRenderer.invoke('open-logs-folder'),
   forceUpdateCheck: () => ipcRenderer.invoke('force-update-check')
 });
