@@ -18,6 +18,16 @@
 //   images  : ['img/xxx.png']             — (option) captures, rendues en grille
 window.PATCH_NOTES = [
   {
+    version: '1.2.5',
+    date: '2026-06-29',
+    title: 'MMR live fiable',
+    items: [
+      { icon: '🎯', text: 'Le MMR live est maintenant fiable (à ~1 près) et instantané à chaque mise en file : calculé directement depuis le journal de Rocket League, sans dépendre du délai du site de stats. Corrige un cas où il restait bloqué sur une vieille valeur.' },
+    ],
+    themes: [],
+    images: [],
+  },
+  {
     version: '1.2.4',
     date: '2026-06-29',
     title: 'Source OBS pour le stream',

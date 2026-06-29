@@ -945,7 +945,7 @@ function calibrateAndPushLiveMmr(key, internal, tier) {
     const resid = mmrcalib.maxResidual(cfg.overlay.mmrCalibPairs[key], calib);
     logFocus(`mmrcalib ${key}: int=${internal} tracker=${tracker} -> live=${live} (pente ${calib.slope.toFixed(2)} off ${calib.offset.toFixed(1)} n${calib.n} resid ${resid != null ? resid.toFixed(1) : '?'})`);
   }
-  lastLiveMmr = (live != null) ? { playlist: key, mmr: live, tier, internal, assumed: !!(calib && calib.assumed) } : null;
+  lastLiveMmr = (live != null) ? { playlist: key, mmr: live, tier, internal, assumed: !(calib && calib.confirmed) } : null;
   sendUpdate({ mmrLive: lastLiveMmr });
   pushHub();
 }
