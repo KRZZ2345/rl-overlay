@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, globalShortcut, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut, screen, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
@@ -8,7 +8,7 @@ const { loadHistory, saveHistory } = require('./lib/history-store');
 const { recordSample } = require('./lib/history');
 const { buildViewModel } = require('./lib/viewmodel');
 const { isNewer, pickAsset, repoSlug, compareVersions } = require('./lib/updater');
-const { startLogWatcher } = require('./rllog');
+const { startLogWatcher, defaultLogPath } = require('./rllog');
 
 // Nom du process de Rocket League (sans .exe) tel que renvoyé par Get-Process.
 const RL_PROCESS = 'RocketLeague';
@@ -459,6 +459,26 @@ function resetCurrent() {
 // IPC : reset de session, déclenché par un raccourci.
 ipcMain.handle('reset-session', () => resetCurrent());
 ipcMain.handle('hub-close', () => closeHub());
+
+// IPC : diagnostic (page Réglages > Diagnostic). Aide le SAV (maj, log RL introuvable…).
+ipcMain.handle('get-diagnostics', () => {
+  const o = loadConfig().overlay || {};
+  const logPath = o.logPath || defaultLogPath();
+  let lastError = null;
+  try { lastError = (lastVm && lastVm.error) || null; } catch {}
+  return {
+    version: app.getVersion(),
+    userData: app.getPath('userData'),
+    logPath,
+    logFound: (() => { try { return fs.existsSync(logPath); } catch { return false; } })(),
+    inGame: overlayVisible,
+    hasStats: !!(lastVm && lastVm.mmr != null),
+    updateStaged,
+    isPackaged: app.isPackaged,
+  };
+});
+ipcMain.handle('open-logs-folder', () => { shell.openPath(app.getPath('userData')); return true; });
+ipcMain.handle('force-update-check', () => { updateChecked = false; checkForUpdate(); return true; });
 
 // IPC : réglage overlay depuis la page Réglages du Hub.
 // Booléens (toggles) et numériques (sliders, bornés). Tout autre clé -> ignorée.

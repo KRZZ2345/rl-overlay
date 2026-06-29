@@ -134,6 +134,17 @@
   #settings .slider { flex: 0 0 160px; accent-color: var(--aA); cursor: pointer; }
   #settings .sval { flex: 0 0 42px; text-align: right; font-variant-numeric: tabular-nums;
     font-size: 13px; color: var(--muted); }
+  /* Diagnostic */
+  #settings .dsep { margin: 22px 0 10px; font-size: 11px; text-transform: uppercase;
+    letter-spacing: .14em; color: var(--aA); }
+  #settings .diag { max-width: 560px; font-size: 13px; }
+  #settings .diag .drow { display: flex; gap: 12px; padding: 5px 0; border-bottom: 1px solid var(--line); }
+  #settings .diag .dk { flex: 0 0 150px; color: var(--muted); }
+  #settings .diag .dv { color: var(--txt); word-break: break-all; font-variant-numeric: tabular-nums; }
+  #settings .diag .ok { color: var(--good); } #settings .diag .bad { color: var(--loss); }
+  #settings .dbtn { flex: 0 0 auto; background: var(--card); color: var(--txt); border: 1px solid var(--line);
+    border-radius: 8px; padding: 7px 12px; font-size: 12px; cursor: pointer; }
+  #settings .dbtn:hover { border-color: var(--aA); color: var(--aA); }
 
   /* Bouton 🎁 (ouvre la page Nouveautés), à gauche du bouton ? */
   #news-toggle { position: fixed; top: 12px; right: 50px; width: 30px; height: 30px; border-radius: 50%;
@@ -295,6 +306,16 @@
       </div>
       <input type="range" class="slider" id="sl-opacity" min="40" max="100" step="5" />
       <span class="sval" id="sv-opacity">—</span>
+    </div>
+    <div class="dsep">Diagnostic</div>
+    <div id="diag" class="diag"></div>
+    <div class="srow">
+      <div class="stext">
+        <div class="stitle">Dépannage</div>
+        <div class="sdesc">Ouvre le dossier des journaux ou force une vérification de mise à jour.</div>
+      </div>
+      <button class="dbtn" id="diag-logs">Ouvrir les logs</button>
+      <button class="dbtn" id="diag-upd">Vérifier la maj</button>
     </div>
   </div>
   <div id="news">
@@ -494,7 +515,32 @@
   document.getElementById('keys-close').addEventListener('click', () => document.body.classList.remove('show-keys'));
   document.getElementById('news-toggle').addEventListener('click', () => document.body.classList.toggle('show-news'));
   document.getElementById('news-close').addEventListener('click', () => document.body.classList.remove('show-news'));
-  document.getElementById('settings-toggle').addEventListener('click', () => document.body.classList.toggle('show-settings'));
+  // Diagnostic : (re)charge les infos à l'ouverture des Réglages.
+  async function refreshDiag() {
+    const box = document.getElementById('diag');
+    if (!box || !window.hub.diagnostics) return;
+    let d; try { d = await window.hub.diagnostics(); } catch { return; }
+    const yn = (b) => b ? '<span class="ok">oui</span>' : '<span class="bad">non</span>';
+    const row = (k, v) => `<div class="drow"><span class="dk">${k}</span><span class="dv">${v}</span></div>`;
+    box.innerHTML =
+      row('Version', d.version) +
+      row('Mode', d.isPackaged ? 'installé' : 'dev') +
+      row('Dossier config', d.userData) +
+      row('Journal RL', `${yn(d.logFound)} <span class="dk" style="flex:none">${d.logPath}</span>`) +
+      row('En partie', yn(d.inGame)) +
+      row('Stats chargées', yn(d.hasStats)) +
+      row('MAJ téléchargée', yn(d.updateStaged));
+  }
+  document.getElementById('settings-toggle').addEventListener('click', () => {
+    document.body.classList.toggle('show-settings');
+    if (document.body.classList.contains('show-settings')) refreshDiag();
+  });
+  document.getElementById('diag-logs').addEventListener('click', () => window.hub.openLogs && window.hub.openLogs());
+  document.getElementById('diag-upd').addEventListener('click', async () => {
+    const b = document.getElementById('diag-upd'); const old = b.textContent;
+    b.textContent = 'Vérification…'; if (window.hub.forceUpdateCheck) await window.hub.forceUpdateCheck();
+    setTimeout(() => { b.textContent = old; refreshDiag(); }, 3000);
+  });
   document.getElementById('settings-close').addEventListener('click', () => document.body.classList.remove('show-settings'));
   // clic sur le fond de la surcouche (pas sur le contenu) -> ferme
   document.getElementById('keys').addEventListener('click', (e) => { if (e.target.id === 'keys') document.body.classList.remove('show-keys'); });
