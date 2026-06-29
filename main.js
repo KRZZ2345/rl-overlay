@@ -9,6 +9,7 @@ const { recordSample } = require('./lib/history');
 const { buildViewModel } = require('./lib/viewmodel');
 const { isNewer, pickAsset, repoSlug, compareVersions } = require('./lib/updater');
 const { startLogWatcher, defaultLogPath } = require('./rllog');
+const { startStatsApi } = require('./statsapi');
 const { makeEntry, appendMatch, summarize } = require('./lib/matchlog');
 const { sparkline } = require('./lib/sparkline');
 
@@ -837,6 +838,27 @@ function refreshAfterMatch() {
   matchBurst.push(setTimeout(tick, 1500));
 }
 
+// --- Stats API officielle RL (TCP 49123, live in-match) ---
+// Phase 1 (découverte) : on capture le schéma réel des frames (types d'events +
+// 1re frame brute) dans overlay.log, pour ensuite mapper l'affichage sur de vraies
+// données plutôt que de deviner. EAC-safe (lecture seule du socket).
+let statsApi = null;
+const statsSeen = new Set();
+let statsFramesLogged = 0;
+function startStatsApiWatcher() {
+  if (statsApi) return;
+  statsApi = startStatsApi({
+    log: logFocus,
+    onEvent: (v) => {
+      // Enveloppe officielle : { Event, Data }. On capture les types vus + qq frames
+      // brutes pour caler l'implémentation sur de vraies données.
+      const ev = (v && (v.Event || v.event)) || (v && Object.keys(v).join(',')) || 'frame';
+      if (!statsSeen.has(ev)) { statsSeen.add(ev); logFocus('statsapi event: ' + ev); }
+      if (statsFramesLogged < 4) { statsFramesLogged++; logFocus('statsapi frame#' + statsFramesLogged + ': ' + JSON.stringify(v).slice(0, 700)); }
+    },
+  });
+}
+
 function startMatchLogWatcher() {
   if (logWatcher) return;
   logWatcher = startLogWatcher({
@@ -861,6 +883,7 @@ function startOverlay() {
   // setOverlayVisible -> startPolling). Aucun scraping tant que pas en jeu.
   startFocusWatcher();
   startMatchLogWatcher();
+  startStatsApiWatcher();
 
   globalShortcut.register('CommandOrControl+Alt+R', () => resetCurrent());
 
@@ -1047,6 +1070,7 @@ app.on('will-quit', () => {
   globalShortcut.unregisterAll();
   clearMatchBurst();
   if (logWatcher) { try { logWatcher.stop(); } catch {} }
+  if (statsApi) { try { statsApi.stop(); } catch {} }
   if (focusProc) { try { focusProc.kill(); } catch {} }
   if (rpc) { try { rpc.close(); } catch {} }
 });
