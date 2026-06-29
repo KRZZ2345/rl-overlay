@@ -10,6 +10,7 @@ const { buildViewModel } = require('./lib/viewmodel');
 const { isNewer, pickAsset, repoSlug, compareVersions } = require('./lib/updater');
 const { startLogWatcher, defaultLogPath } = require('./rllog');
 const { makeEntry, appendMatch, summarize } = require('./lib/matchlog');
+const { sparkline } = require('./lib/sparkline');
 
 // Nom du process de Rocket League (sans .exe) tel que renvoyé par Get-Process.
 const RL_PROCESS = 'RocketLeague';
@@ -482,6 +483,7 @@ ipcMain.handle('get-matches', () => ({
   today: summarize(matches, today()),
   all: summarize(matches),
   recent: matches.slice(-12).reverse(),
+  spark: sparkline(matches.slice(-30).map((m) => m.mmr).filter((n) => n != null)),
 }));
 ipcMain.handle('open-logs-folder', () => { shell.openPath(app.getPath('userData')); return true; });
 ipcMain.handle('force-update-check', () => { updateChecked = false; checkForUpdate(); return true; });
