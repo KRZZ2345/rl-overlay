@@ -11,7 +11,7 @@ const { isNewer, pickAsset, repoSlug, compareVersions } = require('./lib/updater
 const { startLogWatcher, defaultLogPath } = require('./rllog');
 const { startStatsApi } = require('./statsapi');
 const { enableStatsApi, findRocketLeague } = require('./lib/rlinstall');
-const { matchModel } = require('./lib/statsmodel');
+const { matchModel, resultFromScores } = require('./lib/statsmodel');
 const { makeEntry, appendMatch, summarize } = require('./lib/matchlog');
 const { sparkline } = require('./lib/sparkline');
 
@@ -867,10 +867,22 @@ function startStatsApiWatcher() {
           lastLiveSent = now; lastLiveSig = sig; lastLive = model;
           pushHub(); // le payload Hub embarque _live
         }
-      } else if (ev === 'MatchEnded' || ev === 'Initialized' || ev === 'MatchDestroyed') {
-        // fin/début de match : on efface l'état live (la session W/L viendra ensuite)
-        if (ev !== 'MatchEnded') { lastLive = null; lastLiveSig = ''; pushHub(); }
-        logFocus('statsapi: ' + ev);
+      } else if (ev === 'MatchEnded') {
+        // Fin de match : enregistre dans l'historique depuis le dernier état live
+        // (résultat via score des équipes ; stats du joueur local).
+        if (lastLive && lastLive.me) {
+          const r = resultFromScores(lastLive.teamScore, lastLive.oppScore);
+          const me = lastLive.me;
+          matches = appendMatch(matches, makeEntry(loadConfig().playlist, null, null, today(), Date.now(), {
+            result: r, teamScore: lastLive.teamScore, oppScore: lastLive.oppScore,
+            goals: me.goals, saves: me.saves, shots: me.shots, assists: me.assists, score: me.score, source: 'statsapi',
+          }));
+          saveMatches();
+          logFocus(`statsapi: match enregistré ${r} ${lastLive.teamScore}-${lastLive.oppScore} (buts ${me.goals})`);
+        }
+        lastLive = null; lastLiveSig = ''; pushHub();
+      } else if (ev === 'Initialized' || ev === 'MatchCreated' || ev === 'MatchDestroyed') {
+        lastLive = null; lastLiveSig = ''; pushHub(); // nouveau match / reset -> carte live propre
       }
     },
   });

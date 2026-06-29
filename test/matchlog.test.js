@@ -39,5 +39,23 @@ test('summarize : W/L, net, win-rate par jour', () => {
 });
 
 test('summarize gère liste vide/null', () => {
-  assert.deepStrictEqual(summarize(null), { count: 0, wins: 0, losses: 0, net: 0, winRate: 0 });
+  assert.deepStrictEqual(summarize(null), { count: 0, wins: 0, losses: 0, net: 0, winRate: 0, streak: 0 });
+});
+
+test('summarize : résultat explicite (Stats API) prioritaire + streak', () => {
+  const e = (result) => makeEntry('p', null, null, '2026-06-29', Date.now(), { result });
+  const list = [e('W'), e('L'), e('W'), e('W')]; // delta=0 partout, compte par result
+  const s = summarize(list, '2026-06-29');
+  assert.strictEqual(s.wins, 3);
+  assert.strictEqual(s.losses, 1);
+  assert.strictEqual(s.winRate, 75);
+  assert.strictEqual(s.streak, 2); // 2 victoires en cours
+});
+
+test('makeEntry porte les stats Stats API', () => {
+  const m = makeEntry('ranked-doubles', null, null, '2026-06-29', 1, { result: 'W', teamScore: 3, oppScore: 1, goals: 2, saves: 1, shots: 4, assists: 1, source: 'statsapi' });
+  assert.strictEqual(m.result, 'W');
+  assert.strictEqual(m.teamScore, 3);
+  assert.strictEqual(m.goals, 2);
+  assert.strictEqual(m.source, 'statsapi');
 });
