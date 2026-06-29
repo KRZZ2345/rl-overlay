@@ -7,22 +7,39 @@ const path = require('path');
 // Collecteur d'événements pour parseLine.
 function collect(lines) {
   const events = [];
+  const st = {};
   const emit = {
-    matchStart: (id) => events.push({ type: 'start', id }),
+    matchStart: (id, mmr, tier) => events.push({ type: 'start', id, mmr, tier }),
     matchEnd: () => events.push({ type: 'end' }),
   };
-  for (const l of lines) parseLine(l, emit);
+  for (const l of lines) parseLine(l, emit, st);
   return events;
 }
 
 test('détecte le début de match via StartMatchmaking + playlist id', () => {
   const e = collect(['[3201.84] Matchmaking: StartMatchmaking at 2026-06-29 in EU9 for playlists 11 on game server ']);
-  assert.deepStrictEqual(e, [{ type: 'start', id: 11 }]);
+  assert.strictEqual(e.length, 1);
+  assert.strictEqual(e[0].type, 'start');
+  assert.strictEqual(e[0].id, 11);
 });
 
 test('détecte le début via HandleServerReserved (Reservation Playlist=)', () => {
   const e = collect(['[3206.25] Party: HandleServerReserved (Reservation=(ServerName="EU9-x",Playlist=13,Region="EU"))']);
-  assert.deepStrictEqual(e, [{ type: 'start', id: 13 }]);
+  assert.strictEqual(e[0].type, 'start');
+  assert.strictEqual(e[0].id, 13);
+});
+
+test('capture MMR interne + tier (lignes avant StartMatchmaking)', () => {
+  const e = collect([
+    '[0038.25] Matchmaking: Pre-divide PartyLeaderMMR: 21.1114',
+    '[0038.25] Matchmaking: Post-divide PartyLeaderMMR: 21.1114',
+    '[0038.25] Matchmaking: PartyLeaderTier=(11)',
+    '[0038.25] Matchmaking: StartMatchmaking at 2026-06-29 for playlists 10 on game server ',
+  ]);
+  assert.strictEqual(e.length, 1);
+  assert.strictEqual(e[0].id, 10);
+  assert.ok(Math.abs(e[0].mmr - 21.1114) < 1e-6);
+  assert.strictEqual(e[0].tier, 11);
 });
 
 test('détecte la fin de match via WinnerMenu et EndGameMenu', () => {

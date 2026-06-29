@@ -38,6 +38,11 @@
     font-variant-numeric: tabular-nums; letter-spacing: -.03em;
     text-shadow: 0 0 22px rgba(120,160,255,.28); }
   .hero .delta { font-style: italic; color: var(--muted); margin-top: 4px; }
+  .hero .mmrlive { margin-top: 6px; font-size: 13px; font-weight: 700; color: var(--hot);
+    display: inline-flex; gap: 6px; align-items: center; }
+  .hero .mmrlive .lv { font-variant-numeric: tabular-nums; }
+  .hero .mmrlive .lvtag { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--bg); background: var(--hot); border-radius: 4px; padding: 1px 5px; }
   .rankblock .tier { font-size: 22px; font-weight: 600; }
   .peak { text-align: right; }
   .promo { margin-top: 6px; }
@@ -272,6 +277,7 @@
       <div>
         <div class="mmr" data-f="mmr">—</div>
         <div class="delta"><span data-f="delta">—</span> · <span class="pill" data-f="streak">—</span></div>
+        <div class="mmrlive" id="mmr-live" style="display:none"></div>
         <div class="promo">
           <div class="label" data-f="promoLabel">—</div>
           <div class="bar"><i data-f="promoBar"></i></div>
@@ -483,6 +489,14 @@
         if (st) st.innerHTML = [['Buts', live.me.goals], ['Passes', live.me.assists], ['Tirs', live.me.shots], ['Arrêts', live.me.saves], ['Boost', live.me.boost + '%']]
           .map(([k, v]) => `<span class="lst"><b>${v}</b> ${k}</span>`).join('');
       } else { lc.style.display = 'none'; }
+    }
+    // MMR "live" calculé depuis le log (instantané). Badge sous le MMR tracker.
+    const ml = document.getElementById('mmr-live'), lm = vm._mmrLive;
+    if (ml) {
+      if (lm && lm.mmr != null) {
+        ml.style.display = '';
+        ml.innerHTML = `<span class="lvtag">live</span><span class="lv">${lm.mmr}${lm.assumed ? ' ≈' : ''} MMR</span>`;
+      } else { ml.style.display = 'none'; }
     }
     if (vm._showKeys) document.body.classList.add('show-keys'); // auto au 1er lancement
     if (vm._showNews) document.body.classList.add('show-news'); // auto au 1er lancement après update

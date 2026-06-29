@@ -34,15 +34,22 @@ function defaultLogPath() {
 const RE_PLAYLIST_START = /for playlists (\d+)/;            // Matchmaking: StartMatchmaking ... for playlists 11
 const RE_RESERVATION    = /Reservation=\(.*?Playlist=(\d+)/; // Party: HandleServerReserved (Reservation=(...Playlist=11...))
 const RE_MATCH_END      = /GFX_(?:WinnerMenu|EndGameMenu)_SF/;
+const RE_MMR            = /Post-divide PartyLeaderMMR:\s*([\d.]+)/; // MMR interne (échelle ~21-31)
+const RE_TIER           = /PartyLeaderTier=\((\d+)\)/;              // tier de rang exact
 
 // id de playlist RL -> clé interne suivie par l'overlay (modes classés seulement ;
 // les autres ids ne forcent pas la playlist affichée).
 const PLAYLIST_IDS = { 10: 'ranked-duel', 11: 'ranked-doubles', 13: 'ranked-standard' };
 
-// Parse pure d'une ligne -> appelle emit.matchStart / emit.matchEnd. Testable.
-function parseLine(line, emit) {
-  const m = line.match(RE_PLAYLIST_START) || line.match(RE_RESERVATION);
-  if (m) { emit.matchStart(parseInt(m[1], 10)); return; }
+// Parse pure d'une ligne -> appelle emit.matchStart(id, mmrInterne, tier) / emit.matchEnd.
+// `st` porte le dernier MMR interne + tier vus (écrits juste avant le StartMatchmaking).
+function parseLine(line, emit, st) {
+  st = st || {};
+  let m;
+  if ((m = line.match(RE_MMR))) { st.mmr = parseFloat(m[1]); return; }
+  if ((m = line.match(RE_TIER))) { st.tier = parseInt(m[1], 10); return; }
+  m = line.match(RE_PLAYLIST_START) || line.match(RE_RESERVATION);
+  if (m) { emit.matchStart(parseInt(m[1], 10), st.mmr, st.tier); st.mmr = undefined; st.tier = undefined; return; }
   if (RE_MATCH_END.test(line)) emit.matchEnd();
 }
 
@@ -58,9 +65,10 @@ function startLogWatcher(opts = {}) {
   let started = false; // false tant qu'on n'a pas calé le curseur sur la fin
   let buf = '';        // ligne partielle entre deux lectures
   let lastEnd = 0;     // anti-rebond matchEnd
+  const st = {};       // MMR interne + tier en attente (lignes avant le StartMatchmaking)
 
   const emit = {
-    matchStart: (id) => { onMatchStart(id, PLAYLIST_IDS[id] || null); },
+    matchStart: (id, mmr, tier) => { onMatchStart(id, PLAYLIST_IDS[id] || null, mmr, tier); },
     matchEnd: () => {
       const now = Date.now();
       if (now - lastEnd < 5000) return; // WinnerMenu + EndGameMenu chargent ensemble
@@ -85,7 +93,7 @@ function startLogWatcher(opts = {}) {
         const lines = buf.split(/\r?\n/);
         buf = lines.pop();                     // garde la dernière (potentiellement partielle)
         for (const line of lines) {
-          try { parseLine(line, emit); } catch (e) { log('rllog parse: ' + e.message); }
+          try { parseLine(line, emit, st); } catch (e) { log('rllog parse: ' + e.message); }
         }
       });
       stream.on('error', (e) => log('rllog read: ' + e.message));

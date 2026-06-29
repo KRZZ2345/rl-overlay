@@ -13,6 +13,7 @@ const { startStatsApi } = require('./statsapi');
 const { enableStatsApi, findRocketLeague } = require('./lib/rlinstall');
 const { matchModel, resultFromScores } = require('./lib/statsmodel');
 const { createAggregator } = require('./lib/matchagg');
+const mmrcalib = require('./lib/mmrcalib');
 const { makeEntry, appendMatch, summarize } = require('./lib/matchlog');
 const { sparkline } = require('./lib/sparkline');
 
@@ -384,7 +385,8 @@ function pushHub() {
     const payload = { ...lastVm, _theme: theme, _mmrGlow: o.mmrGlow !== false, _showMusic: o.showMusic !== false,
       _overlayScale: o.overlayScale ?? 100, _overlayOpacity: o.overlayOpacity ?? 100,
       _showStreak: o.showStreak !== false, _showDelta: o.showDelta !== false,
-      _live: (lastLive && lastLive.inMatch) ? lastLive : null };
+      _live: (lastLive && lastLive.inMatch) ? lastLive : null,
+      _mmrLive: lastLiveMmr };
     if (showKeysOnce) { payload._showKeys = true; showKeysOnce = false; }
     if (showNewsOnce) { payload._showNews = true; showNewsOnce = false; }
     hubWin.webContents.send('hub-update', payload);
@@ -898,15 +900,40 @@ function startStatsApiWatcher() {
   });
 }
 
+// MMR "live exact" dérivé du log : MMR interne (PartyLeaderMMR) converti en MMR
+// affiché via une calibration linéaire par playlist (apprise des paires
+// interne↔tracker). Mis à jour à chaque mise en file = instantané (avant tracker).
+let lastLiveMmr = null;
+function calibrateAndPushLiveMmr(key, internal, tier) {
+  if (!Number.isFinite(internal)) return;
+  const cfg = loadConfig();
+  cfg.overlay.mmrCalibPairs = cfg.overlay.mmrCalibPairs || {};
+  const tracker = mmrRef(key).last;
+  if (Number.isFinite(tracker)) {
+    cfg.overlay.mmrCalibPairs[key] = mmrcalib.addPair(cfg.overlay.mmrCalibPairs[key], internal, tracker);
+    saveConfig(cfg);
+  }
+  const calib = mmrcalib.fit(cfg.overlay.mmrCalibPairs[key]);
+  const live = mmrcalib.apply(internal, calib);
+  if (calib) {
+    const resid = mmrcalib.maxResidual(cfg.overlay.mmrCalibPairs[key], calib);
+    logFocus(`mmrcalib ${key}: int=${internal} tracker=${tracker} -> live=${live} (pente ${calib.slope.toFixed(2)} off ${calib.offset.toFixed(1)} n${calib.n} resid ${resid != null ? resid.toFixed(1) : '?'})`);
+  }
+  lastLiveMmr = (live != null) ? { playlist: key, mmr: live, tier, internal, assumed: !!(calib && calib.assumed) } : null;
+  sendUpdate({ mmrLive: lastLiveMmr });
+  pushHub();
+}
+
 function startMatchLogWatcher() {
   if (logWatcher) return;
   logWatcher = startLogWatcher({
     logPath: loadConfig().overlay.logPath || undefined,
     log: logFocus,
-    onMatchStart: (id, key) => {
+    onMatchStart: (id, key, internal, tier) => {
       clearMatchBurst(); // nouveau match -> annule la rafale précédente
-      logFocus(`log: match start playlist=${id}${key ? ' (' + key + ')' : ''}`);
+      logFocus(`log: match start playlist=${id}${key ? ' (' + key + ')' : ''} mmrInt=${internal} tier=${tier}`);
       if (key) switchPlaylist(key); // suit la playlist réellement jouée
+      if (key) calibrateAndPushLiveMmr(key, internal, tier);
     },
     onMatchEnd: () => { logFocus('log: match end -> refresh MMR'); refreshAfterMatch(); },
   });
